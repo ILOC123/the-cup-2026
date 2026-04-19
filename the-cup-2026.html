@@ -591,18 +591,18 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 .stbl-card-inp .scv{font-size:20px;min-width:40px;line-height:48px;font-weight:700;}
 
 @media print {
-  body * { visibility: hidden !important; }
-  #print-spielplan, #print-spielplan * { visibility: visible !important; }
+  body > *:not(#print-spielplan) { display: none !important; }
+  body { margin: 0; padding: 0; background: white; }
   #print-spielplan {
-    position: fixed !important;
-    top: 0; left: 0;
+    display: block !important;
     width: 100%;
-    background: white !important;
-    color: black !important;
+    background: white;
+    color: black;
     font-family: Arial, sans-serif;
-    padding: 20px;
-    box-sizing: border-box;
+    font-size: 12px;
   }
+  .ps-page1 { padding: 20px; }
+  .ps-page2 { padding: 20px; page-break-before: always; }
   .ps-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
   .ps-sub { font-size: 12px; color: #666; margin-bottom: 16px; }
   .ps-day { font-size: 15px; font-weight: 700; margin: 14px 0 6px; border-bottom: 2px solid #333; padding-bottom: 4px; }
@@ -617,18 +617,16 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
   .ps-vorg-blau { color: #1a5fa8; background: rgba(26,95,168,0.1); }
   .ps-info { font-size: 10px; color: #888; margin-left: auto; white-space: nowrap; padding-left: 10px; }
   .ps-footer { margin-top: 20px; font-size: 10px; color: #aaa; text-align: center; }
-  .ps-page2 { page-break-before: always; padding-top: 20px; }
   .ps-mtx-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
   .ps-mtx-sub { font-size: 11px; color: #666; margin-bottom: 16px; }
-  .ps-mtx-wrap { overflow-x: auto; }
   .ps-mtx table { border-collapse: collapse; width: 100%; }
-  .ps-mtx th, .ps-mtx td { border: 1px solid #ccc; padding: 6px 10px; text-align: center; font-size: 12px; }
+  .ps-mtx th, .ps-mtx td { border: 1px solid #ccc; padding: 7px 12px; text-align: center; font-size: 12px; }
   .ps-mtx th.row-hdr { text-align: left; color: #c0392b; font-weight: 700; background: #fdf2f2; }
   .ps-mtx th.col-hdr { color: #1a5fa8; font-weight: 700; background: #f0f5ff; }
   .ps-mtx td.cell-team { background: #f5f5f5; color: #333; font-weight: 600; }
   .ps-mtx td.cell-einzel { background: #fff8e1; color: #b7770d; font-weight: 700; border: 2px solid #f0c040; }
   .ps-einzel-title { font-size: 15px; font-weight: 700; margin: 20px 0 8px; }
-  .ps-einzel-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; border-bottom: 1px solid #eee; font-size: 12px; }
+  .ps-einzel-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid #eee; font-size: 12px; }
   .ps-einzel-num { width: 20px; color: #999; font-size: 11px; }
 }
 </style>
@@ -3044,7 +3042,8 @@ function printSpielplan(){
 
   // Gruppiere Matches nach Tag + Format
   var days=[...new Set(MATCHES.map(function(m){return m.day;}))];
-  var html='<div class="ps-title">🏆 The Cup '+( EXTRAS.jahr||'2026')+'</div>';
+  var html='<div class="ps-page1">';
+  html+='<div class="ps-title">🏆 The Cup '+( EXTRAS.jahr||'2026')+'</div>';
   html+='<div class="ps-sub">Spielplan · Erstellt: '+new Date().toLocaleDateString('de-DE')+'</div>';
 
   days.forEach(function(day){
@@ -3086,6 +3085,7 @@ function printSpielplan(){
   });
 
   html+='<div class="ps-footer">🔴 Team Rot &nbsp;|&nbsp; 🔵 Team Blau &nbsp;|&nbsp; +X = Extraschläge</div>';
+  html+='</div>'; // end ps-page1
 
   // ── Seite 2: Duell-Matrix ──
   var rot=PL.rot.map(function(p){return p.n;});
