@@ -2837,15 +2837,15 @@ function bMx(){
     // Konfiguration: Platz + Löcher
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;background:var(--dark3);padding:10px;border-radius:10px">'
     +'<div><div class="el">Tag</div><select class="asel" id="ez-day">'
-    +DAYS.map(function(d){return'<option value="'+d+'"'+(d==='Samstag'?' selected':'')+'>'+d+'</option>';}).join('')
+    +DAYS.map(function(d){var sv=EXTRAS.ezDay||'Samstag';return'<option value="'+d+'"'+(d===sv?' selected':'')+'>'+d+'</option>';}).join('')
     +'</select></div>'
     +'<div><div class="el">Löcher</div><select class="asel" id="ez-loch">'
-    +'<option value="all">18 Löcher</option>'
-    +'<option value="front">9L Vorne (1–9)</option>'
-    +'<option value="back">9L Hinten (10–18)</option>'
+    +'<option value="all"'+((!EXTRAS.ezLoch||EXTRAS.ezLoch==='all')?' selected':'')+'>18 Löcher</option>'
+    +'<option value="front"'+(EXTRAS.ezLoch==='front'?' selected':'')+'>9L Vorne (1–9)</option>'
+    +'<option value="back"'+(EXTRAS.ezLoch==='back'?' selected':'')+'>9L Hinten (10–18)</option>'
     +'</select></div>'
     +'<div><div class="el">Platz</div><select class="asel" id="ez-ckey">'
-    +Object.entries(COURSES).filter(function(e){return e[0]!=='PAR3';}).map(function(e){return'<option value="'+e[0]+'">'+e[1].name+'</option>';}).join('')
+    +Object.entries(COURSES).filter(function(e){return e[0]!=='PAR3';}).map(function(e){var sv=EXTRAS.ezCkey||'OLD';return'<option value="'+e[0]+'"'+(e[0]===sv?' selected':'')+'>'+e[1].name+'</option>';}).join('')
     +'</select></div>'
     +'</div>'
     +'<button onclick="suggestCP()" style="width:100%;padding:8px;margin-bottom:12px;border-radius:8px;border:1px solid rgba(201,150,10,0.4);background:rgba(201,150,10,0.08);color:var(--gold);font-size:12px;cursor:pointer">💡 Matrix-Vorschlag laden</button>'
@@ -2880,6 +2880,13 @@ function saveCP(){
     const sel=document.getElementById('cp-'+ri);
     return{rot:r,blau:sel?sel.value:''};
   }).filter(function(p){return p.blau;});
+  // Konfiguration mitspseichern damit sie nach renderAdm erhalten bleibt
+  var dayEl=document.getElementById('ez-day');
+  var lochEl=document.getElementById('ez-loch');
+  var ckeyEl=document.getElementById('ez-ckey');
+  if(dayEl)EXTRAS.ezDay=dayEl.value;
+  if(lochEl)EXTRAS.ezLoch=lochEl.value;
+  if(ckeyEl)EXTRAS.ezCkey=ckeyEl.value;
   saveData();
   showToast('Picks gespeichert ✓');
   renderAdm();
@@ -2895,9 +2902,11 @@ function applyCP(){
   const dayEl=document.getElementById('ez-day');
   const lochEl=document.getElementById('ez-loch');
   const ckeyEl=document.getElementById('ez-ckey');
-  const ezDay=dayEl?dayEl.value:'Samstag';
-  const ezLoch=lochEl?lochEl.value:'all';
-  const ezCkey=ckeyEl?ckeyEl.value:'OLD';
+  const ezDay=dayEl?dayEl.value:(EXTRAS.ezDay||'Samstag');
+  const ezLoch=lochEl?lochEl.value:(EXTRAS.ezLoch||'all');
+  const ezCkey=ckeyEl?ckeyEl.value:(EXTRAS.ezCkey||'OLD');
+  // Werte persistieren
+  EXTRAS.ezDay=ezDay;EXTRAS.ezLoch=ezLoch;EXTRAS.ezCkey=ezCkey;
   const lochCfg={'all':{nine:'all',holes:18},'front':{nine:'front',holes:9},'back':{nine:'back',holes:9}};
   const lc=lochCfg[ezLoch]||lochCfg['all'];
   const fmtName='Einzel '+(lc.holes===18?'18L':'9L');
