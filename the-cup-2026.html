@@ -2216,7 +2216,41 @@ function bMat(){
       +'</div>';
   }).join('');
 
+  // ── Dübler Schnell-Hinzufügen ────────────────────────────
+  // ── Dübler Schnell-Hinzufügen ────────────────────────────────────────
+  var dueblerPairsHtml="";
+  var _duPairs=getDueblerPairs();
+  if(!_duPairs.length){
+    dueblerPairsHtml='<div style="font-size:12px;color:var(--gold);padding:10px;background:var(--dark3);border-radius:8px;text-align:center">'
+      +'⚠️ Noch keine Captain\'s Picks gesetzt.<br><span style="color:var(--grey);font-size:11px">Zuerst im 🔀 Matrix-Tab die Einzel-Paarungen festlegen.</span></div>';
+  }
+  for(var di=0;di<_duPairs.length;di++){
+    var dp=_duPairs[di];
+    var rotOpts=PL.rot.map(function(p){return'<option value="'+p.n+'" '+(dp.pA.includes(p.n)?'selected':'')+'>'+p.n+'</option>';}).join('');
+    var blauOpts=PL.blau.map(function(p){return'<option value="'+p.n+'" '+(dp.pB.includes(p.n)?'selected':'')+'>'+p.n+'</option>';}).join('');
+    dueblerPairsHtml+='<div style="background:var(--dark3);border-radius:8px;padding:8px 10px;margin-bottom:8px">'
+      +'<div style="font-size:10px;color:var(--grey);margin-bottom:6px">Match '+(di+1)+'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center">'
+      +'<div><div style="font-size:10px;color:var(--rot-m);font-weight:700;margin-bottom:3px">🔴 Rot (2 wählen)</div>'
+      +'<select class="asel" id="du-pA-'+di+'" multiple size="3" style="height:auto">'+rotOpts+'</select></div>'
+      +'<div style="color:var(--grey);font-size:12px;text-align:center">vs</div>'
+      +'<div><div style="font-size:10px;color:var(--blau-m);font-weight:700;margin-bottom:3px">🔵 Blau (2 wählen)</div>'
+      +'<select class="asel" id="du-pB-'+di+'" multiple size="3" style="height:auto">'+blauOpts+'</select></div>'
+      +'</div></div>';
+  }
+  var dayOpts=DAYS.map(function(d){return'<option value="'+d+'">'+d+'</option>';}).join('')+'<option value="Dübler Par3">Sondertag</option>';
+  var dueblerSection='<div class="ac" style="border-color:rgba(99,179,237,0.35)"><h3>🏌Dübler Kurzplatz</h3>'
+    +'<div style="font-size:11px;color:var(--grey);margin-bottom:12px">Ohne Spielvorgabe · 9 Loch · Kurzplatz · Matchplay<br>'
+    +'<strong style="color:rgba(99,179,237,0.9)">Paarungen wählen und Tag festlegen — dann sofort hinzufügen.</strong></div>'
+    +'<div style="margin-bottom:12px"><div class="el">Tag</div>'
+    +'<select class="asel" id="du-day" style="max-width:180px">'+dayOpts+'</select></div>'
+    +'<div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:8px">Paarungen (je 2v2)</div>'
+    +dueblerPairsHtml
+    +'<button class="svb" onclick="addDueblerMatches()" style="width:100%;margin-top:4px">➕ Dübler-Matches hinzufügen</button>'
+    +'<button onclick="removeDueblerMatches()" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid rgba(231,76,60,0.3);background:transparent;color:rgba(231,76,60,0.8);font-size:13px;cursor:pointer">🗑 Dübler-Matches entfernen</button>'
+    +'</div>';
   return genSection
+    +dueblerSection
     +overview
     +'<div class="ac" style="margin-top:4px">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:0" onclick="toggleEditSection(this)">'
@@ -2871,38 +2905,67 @@ document.head.appendChild(mxStyle);
 
 
 // ─── DÜBLER SCHNELL-HINZUFÜGEN ──────────────────────────────
-// Optimale Paarungen: kein Einzel-Paar wird wiederholt
-// Mathematisch verifiziert: 0 Violations gegen die Duell-Matrix
-const DUEBLER_PAIRS=[
-  {pA:['Gubi','Luca'],   pB:['Reto','Robin']},
-  {pA:['Wörz','Oli'],    pB:['Simon','Justin']},
-  {pA:['Calvin','Schimi'],pB:['Kenneth','Nippu']},
-];
+// Paarungen dynamisch aus Captain's Picks (EXTRAS.einzel) abgeleitet:
+// Je 2 Einzel-Paare werden zu einem 2v2 Dübler-Match zusammengelegt.
+function getDueblerPairs(){
+  var picks=EXTRAS.einzel||[];
+  var pairs=[];
+  for(var i=0;i+1<picks.length;i+=2){
+    pairs.push({pA:[picks[i].rot,picks[i+1].rot],pB:[picks[i].blau,picks[i+1].blau]});
+  }
+  return pairs;
+}
 function addDueblerMatches(){
   const day=document.getElementById('du-day')?.value||'Dübler Par3';
-  const ckey=document.getElementById('du-ckey')?.value||'PAR3';
-  const c=COURSES[ckey];
-  const nine=ckey==='PAR3'?'9':'9';
+  const ckey='PAR3';
+  const nine='9';
   const holes=9;
-  const fmt=ckey==='PAR3'?'Dübler 9L':'Best Ball 9L';
-  const type=ckey==='PAR3'?'duebler':'bb';
+  const fmt='Dübler 9L';
+  const type='duebler';
   const ts=Date.now();
-  // Check if already added
-  const alreadyHas=DUEBLER_PAIRS.every(dp=>
-    MATCHES.some(m=>m.pA.join()===dp.pA.join()&&m.pB.join()===dp.pB.join()&&m.day===day)
+  // Read pairs from dropdowns
+  const basePairs=getDueblerPairs();
+  const pairs=[];
+  for(let i=0;i<basePairs.length;i++){
+    const pAEl=document.getElementById('du-pA-'+i);
+    const pBEl=document.getElementById('du-pB-'+i);
+    const pA=pAEl?Array.from(pAEl.selectedOptions).map(o=>o.value):basePairs[i].pA;
+    const pB=pBEl?Array.from(pBEl.selectedOptions).map(o=>o.value):basePairs[i].pB;
+    if(pA.length!==2||pB.length!==2){showToast('Bitte genau 2 Spieler pro Seite wählen (Match '+(i+1)+')');return;}
+    pairs.push({pA,pB});
+  }
+  if(!pairs.length){showToast('Keine Einzel-Paarungen definiert! Bitte zuerst Captain\'s Pick setzen.');return;}
+  // Check duplicates
+  const alreadyHas=pairs.every(dp=>
+    MATCHES.some(m=>m.type==='duebler'&&m.pA.join()===dp.pA.join()&&m.pB.join()===dp.pB.join()&&m.day===day)
   );
   if(alreadyHas){showToast('Dübler bereits vorhanden!');return;}
-  DUEBLER_PAIRS.forEach((dp,i)=>{
+  pairs.forEach(function(dp,i){
     MATCHES.push({
-      id:`DU_${ts}_${i+1}`,day,fmt,type,ckey,nine,
+      id:'DU_'+ts+'_'+(i+1),day,fmt,type,ckey,nine,
       tA:'rot',tB:'blau',
       pA:dp.pA,pB:dp.pB,holes
     });
   });
   saveData();recalcAll();renderAdm();renderSB();renderSC();
-  showToast(`3 Dübler-Matches (${day}) hinzugefügt ✓`);
+  showToast(pairs.length+' Dübler-Matches ('+day+') hinzugefügt ✓');
 }
 
+function removeDueblerMatches(){
+  var day=document.getElementById('du-day')?.value||'';
+  var before=MATCHES.length;
+  if(day){
+    MATCHES=MATCHES.filter(function(m){return!(m.type==='duebler'&&m.day===day);});
+  } else {
+    MATCHES=MATCHES.filter(function(m){return m.type!=='duebler';});
+  }
+  var removed=before-MATCHES.length;
+  if(!removed){showToast('Keine Dübler-Matches gefunden');return;}
+  // Scores löschen
+  MATCHES.filter(function(m){return m.type==='duebler';}).forEach(function(m){delete results[m.id];delete scores[m.id];});
+  saveData();recalcAll();renderAdm();renderSB();renderSC();
+  showToast(removed+' Dübler-Match'+(removed===1?'':'es')+' entfernt ✓');
+}
 function chkPw(){const e=document.getElementById('pw');if(e&&e.value===PW){admOn=true;renderAdm();showToast('Admin entsperrt ✓');}else{showToast('Falsches Passwort');if(e)e.value='';}}
 function setR(mid,w){const m=MATCHES.find(x=>x.id===mid);if(w==='rot')results[mid]={rotPts:1,blauPts:0,holesPlayed:m.holes,preset:true};else if(w==='blau')results[mid]={rotPts:0,blauPts:1,holesPlayed:m.holes,preset:true};else results[mid]={rotPts:0.5,blauPts:0.5,holesPlayed:m.holes,preset:true};saveData();renderAdm();renderSB();renderSP();showToast('Gespeichert ✓');}
 function clrR(mid){delete results[mid];delete scores[mid];saveData();renderAdm();renderSB();renderSP();}
