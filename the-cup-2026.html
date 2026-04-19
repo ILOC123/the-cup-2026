@@ -2457,7 +2457,7 @@ function bExtras(){
     // Max 2 NTP holes per round
     var slots=[0,1];
     var slotHtml=slots.map(function(slot){
-      var active=activeRounds[slot];
+      var active=activeRounds.find(function(r){return r.slot===slot;});
       var selOpts=g.par3holes.map(function(h){
         return'<option value="'+h+'" '+(active&&active.holeIndex===h?'selected':'')+'>Loch '+(h+1)+' (Par 3)</option>';
       }).join('');
