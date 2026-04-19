@@ -3030,6 +3030,20 @@ function archivieren(){
     };
   }).filter(Boolean);
 
+  // Vollständiger Spielplan (alle Matches, auch ohne Ergebnis)
+  var fmtNames={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',duebler:'Dübler',einzel:'Einzel'};
+  var spielplan=MATCHES.map(function(m){
+    var x=results[m.id];
+    return{
+      id:m.id,day:m.day,fmt:fmtNames[m.type]||m.type,type:m.type,
+      ckey:m.ckey,holes:m.holes,
+      pA:m.pA.join(' & '),pB:m.pB.join(' & '),
+      tA:m.tA,tB:m.tB,
+      rotPts:x?(m.tA==='rot'?x.rotPts:x.blauPts):null,
+      blauPts:x?(m.tA==='rot'?x.blauPts:x.rotPts):null
+    };
+  });
+
   var entry={
     id:'arc_'+Date.now(),
     name:name,
@@ -3042,7 +3056,8 @@ function archivieren(){
     blau:blau,
     hcps:{},
     mtx:mtx,
-    matches:matchRes
+    matches:matchRes,
+    spielplan:spielplan
   };
   // HCPs speichern
   PL.rot.concat(PL.blau).forEach(function(p){entry.hcps[p.n]=p.hcp;});
@@ -3109,22 +3124,25 @@ function bArchiv(){
 
     // Match-Ergebnisse
     var matchHtml='';
-    if(e.matches&&e.matches.length){
-      var days=['Donnerstag','Freitag','Samstag'];
+    var spielplanSrc=e.spielplan||e.matches||[];
+    if(spielplanSrc.length){
+      var days=['Donnerstag','Freitag','Samstag','Dübler Par3'];
       days.forEach(function(day){
-        var dm=e.matches.filter(function(m){return m.day===day;});
+        var dm=spielplanSrc.filter(function(m){return m.day===day;});
         if(!dm.length)return;
         matchHtml+='<div style="font-size:10px;color:var(--gold);font-weight:700;margin:8px 0 4px;text-transform:uppercase;letter-spacing:0.5px">'+day+'</div>';
         dm.forEach(function(m){
           var rPts=m.tA==='rot'?m.rotPts:m.blauPts;
           var bPts=m.tA==='rot'?m.blauPts:m.rotPts;
-          var res=rPts>bPts?'🔴':bPts>rPts?'🔵':'½';
-          matchHtml+='<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04)">'
-            +'<span style="color:var(--rot-m)">'+m.pA+'</span>'
+          var res=rPts!=null?(rPts>bPts?'🔴':bPts>rPts?'🔵':'½'):'–';
+          var resCol=rPts!=null&&rPts>bPts?'var(--rot-m)':rPts!=null&&bPts>rPts?'var(--blau-m)':rPts!=null?'var(--gold)':'var(--grey)';
+          var courseName=m.ckey==='OLD'?'Old':m.ckey==='NEW'?'New':m.ckey||'';
+          matchHtml+='<div style="display:flex;align-items:center;gap:6px;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04)">'
+            +'<span style="color:var(--rot-m);font-weight:600">'+m.pA+'</span>'
             +'<span style="color:var(--grey);font-size:10px">vs</span>'
-            +'<span style="color:var(--blau-m)">'+m.pB+'</span>'
-            +'<span style="margin-left:auto;font-size:10px;color:var(--grey)">'+m.fmt+'</span>'
-            +'<span style="min-width:16px;text-align:center">'+res+'</span>'
+            +'<span style="color:var(--blau-m);font-weight:600">'+m.pB+'</span>'
+            +'<span style="margin-left:auto;font-size:10px;color:var(--grey)">'+m.fmt+' · '+courseName+' · '+m.holes+'L</span>'
+            +'<span style="min-width:18px;text-align:center;font-weight:700;color:'+resCol+'">'+res+'</span>'
             +'</div>';
         });
       });
