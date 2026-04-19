@@ -1300,16 +1300,27 @@ function renderSB(){
     var ws=w==='rot'?'🔴 Rot':w==='blau'?'🔵 Blau':w==='tie'?'½':'-';
     // Collect best distances per team across all matches in this round
     var roundMs=MATCHES.filter(function(m){return m.day===r.day&&r.types.includes(m.type);});
-    var bestRot=null,bestBlau=null;
+    var bestRot=null,bestBlau=null,bestRotMatch=null,bestBlauMatch=null;
     roundMs.forEach(function(m){
       var md=(ntpR[r.id]&&ntpR[r.id][m.id])||{};
-      if(md.rot){var v=parseFloat(md.rot);if(bestRot===null||v<bestRot)bestRot=v;}
-      if(md.blau){var v=parseFloat(md.blau);if(bestBlau===null||v<bestBlau)bestBlau=v;}
+      if(md.rot){var v=parseFloat(md.rot);if(bestRot===null||v<bestRot){bestRot=v;bestRotMatch=m;}}
+      if(md.blau){var v=parseFloat(md.blau);if(bestBlau===null||v<bestBlau){bestBlau=v;bestBlauMatch=m;}}
     });
     function fmtDist(cm){if(cm===null)return'—';var mc=cmToMC(cm);return mc.m>0?mc.m+'m '+mc.cm+'cm':mc.cm+'cm';}
+    function getTeamPlayers(m,team){
+      if(!m)return'';
+      var isEinzel=m.type==='einzel';
+      var players=m.tA===team?m.pA:m.pB;
+      if(!players||players.length===0)return'';
+      if(isEinzel)return players[0];
+      return players.join(' & ');
+    }
     var rD=fmtDist(bestRot);var bD=fmtDist(bestBlau);
+    var rN=getTeamPlayers(bestRotMatch,'rot');var bN=getTeamPlayers(bestBlauMatch,'blau');
+    var rStr='🔴 '+rD+(rN?' <span style="color:var(--rot-m);font-size:10px">'+rN+'</span>':'');
+    var bStr='🔵 '+bD+(bN?' <span style="color:var(--blau-m);font-size:10px">'+bN+'</span>':'');
     return'<div class="ntp-sb-row"><div class="ntp-sb-lbl">📍 '+r.label+' ('+r.day+')'
-      +' · 🔴 '+rD+' · 🔵 '+bD+'</div>'
+      +' · '+rStr+' · '+bStr+'</div>'
       +'<span class="ntp-win-badge">'+ws+'</span>'
       +(w&&w!=='-'?'<span class="ntp-pts-badge">+'+fmt(EXTRAS.ntp.pts)+'</span>':'')
       +'</div>';
