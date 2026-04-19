@@ -1358,10 +1358,16 @@ function renderSB(){
         }
         const tAc=m.tA==='rot'?'var(--rot-m)':'var(--blau-m)';
         const tBc=m.tB==='rot'?'var(--rot-m)':'var(--blau-m)';
+        var tsSB=(m.type==='bb'||m.type==='greensome'||m.type==='einzel')?teamStrokes(m):null;
+        var vSBA='',vSBB='';
+        if(tsSB&&tsSB.diff>0){
+          var vSBBadge='<span style="background:rgba(255,255,255,0.08);border-radius:8px;font-size:10px;padding:1px 5px;font-weight:700;margin-left:3px;white-space:nowrap;color:'+(tsSB.weakerIsA?tAc:tBc)+'">+'+tsSB.diff+'</span>';
+          if(tsSB.weakerIsA)vSBA=vSBBadge; else vSBB=vSBBadge;
+        }
         return '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px">'
-          +'<span style="flex:1"><span style="color:'+tAc+';font-weight:600">🔴 '+m.pA.join(' & ')+'</span>'
+          +'<span style="flex:1"><span style="color:'+tAc+';font-weight:600">🔴 '+m.pA.join(' & ')+'</span>'+vSBA
           +' <span style="color:var(--grey)">vs</span> '
-          +'<span style="color:'+tBc+';font-weight:600">🔵 '+m.pB.join(' & ')+'</span></span>'
+          +'<span style="color:'+tBc+';font-weight:600">🔵 '+m.pB.join(' & ')+'</span>'+vSBB+'</span>'
           +badge+'</div>';
       }).join('');
       return '<div style="margin-bottom:8px">'
@@ -1435,21 +1441,22 @@ function renderSC(){
       else{const lead=x.isStabl?(x.rotUP>x.blauUP?`🔴${x.rotUP}P`:x.blauUP>x.rotUP?`🔵${x.blauUP}P`:'AS'):(x.rotUP>x.blauUP?`🔴${x.rotUP-x.blauUP}UP`:x.blauUP>x.rotUP?`🔵${x.blauUP-x.rotUP}UP`:'AS');st=`<span class="mcs" style="color:var(--gold)"><span class="ld"></span>${lead}·L${x.holesPlayed}</span>`;}
     }else if(x&&x.preset)st=x.rotPts===0.5?`<span class="mcs" style="color:var(--gold)">½</span>`:`<span class="mcs">✓${x.rotPts>x.blauPts?'🔴':'🔵'}</span>`;
     // CourseHCP for each player in this match
-    const fmtHcp=(names)=>names.map(n=>{const ch=courseHcp(getHcp(n),m.ckey);return`<span style="font-family:var(--mono);font-size:10px;opacity:0.7">(${ch})</span>`;}).join(' ');
-    const pAhcp=fmtHcp(m.pA);const pBhcp=fmtHcp(m.pB);
     // Strokes info for match card
     const tsCard=(m.type==='bb'||m.type==='duebler'||m.type==='greensome'||m.type==='einzel')?teamStrokes(m):null;
-    let strokBadge='';
+    // Vorgabe-Badge: farbig beim schwächeren Team/Spieler
+    const colA=m.tA==='rot'?'var(--rot-m)':'var(--blau-m)';
+    const colB=m.tB==='rot'?'var(--rot-m)':'var(--blau-m)';
+    let vorgA='',vorgB='';
     if(tsCard&&tsCard.diff>0){
-      const wkCol=tsCard.weakerIsA?(m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'):(m.tB==='rot'?'var(--rot-m)':'var(--blau-m)');
-      const wkName=tsCard.weakerIsA?m.pA.join('&'):m.pB.join('&');
-      strokBadge=`<span style="background:rgba(201,150,10,0.15);color:var(--gold);border-radius:4px;font-size:10px;padding:1px 5px;font-weight:700;white-space:nowrap">+${tsCard.diff}⛳</span>`;
+      const badge=(col)=>`<span style="background:rgba(255,255,255,0.08);color:${col};border-radius:10px;font-size:10px;padding:1px 6px;font-weight:700;margin-left:4px;white-space:nowrap">+${tsCard.diff}</span>`;
+      if(tsCard.weakerIsA)vorgA=badge(colA);
+      else vorgB=badge(colB);
     }
     return`<div class="mc" onclick="openM('${m.id}')">
       <div class="mcdp"><div class="mcd" style="background:${m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'}"></div><div class="mcd" style="background:${m.tB==='rot'?'var(--rot-m)':'var(--blau-m)'}"></div></div>
       <div class="mct">
-        <div style="font-size:13px;font-weight:700">${tAc}${m.pA.join(' & ')} ${pAhcp} <span style="color:var(--grey);font-weight:400">vs</span> ${tBc}${m.pB.join(' & ')} ${pBhcp}</div>
-        <div class="mcf">${fl[m.type]} · ${c.name} · ${nL} · <span class="tee-pill t${tK}">${tK}</span>${ntpCnt>0?' · 📍'+ntpCnt:''}${strokBadge?'&nbsp;'+strokBadge:''}${st}</div>
+        <div style="font-size:13px;font-weight:700">${tAc}<span style="color:${colA}">${m.pA.join(' & ')}</span>${vorgA} <span style="color:var(--grey);font-weight:400">vs</span> ${tBc}<span style="color:${colB}">${m.pB.join(' & ')}</span>${vorgB}</div>
+        <div class="mcf">${fl[m.type]} · ${c.name} · ${nL} · <span class="tee-pill t${tK}">${tK}</span>${ntpCnt>0?' · 📍'+ntpCnt:''}${st}</div>
       </div><div style="font-size:18px;color:var(--grey)">›</div>
     </div>`;
   }).join('')+'</div>';
@@ -1495,9 +1502,8 @@ function renderEntry(m){
   let info='';
   if(isBB&&ts){const wt=ts.weakerIsA?(m.tA==='rot'?'🔴 Rot':'🔵 Blau'):(m.tB==='rot'?'🔴 Rot':'🔵 Blau');
     const wColBB=ts.weakerIsA?(m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'):(m.tB==='rot'?'var(--rot-m)':'var(--blau-m)');
-    const chDispA=ts.weakerIsA?ts.avgA:ts.avgB;const chDispB=ts.weakerIsA?ts.avgB:ts.avgA;
     info=`<div class="infob" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
-      <span style="color:var(--grey)">Tee <span class="tee-pill t${tK}">${tK}</span> &nbsp;|&nbsp; CourseHCP: <strong style="color:${m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'}">${chDispA}</strong> vs <strong style="color:${m.tB==='rot'?'var(--rot-m)':'var(--blau-m)'}">${chDispB}</strong></span>
+      <span style="color:var(--grey)">Tee <span class="tee-pill t${tK}">${tK}</span> &nbsp;|&nbsp; CourseHCP: <strong style="color:${m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'}">${ts.avgA}</strong> vs <strong style="color:${m.tB==='rot'?'var(--rot-m)':'var(--blau-m)'}">${ts.avgB}</strong></span>
       ${ts.diff>0?`<span style="background:rgba(201,150,10,0.2);color:var(--gold);border-radius:6px;padding:2px 8px;font-weight:700;font-size:11px;">⛳ ${wt} +${ts.diff} Schläge</span>`:'<span style="color:var(--grey)">Gleiches HCP</span>'}
     </div>`;}
   else if(isStabl){
@@ -2192,11 +2198,17 @@ function bMat(){
             badge='<span style="margin-left:6px;font-size:10px;color:var(--gold)">'+lead+'</span>';
           }
         }
+        var tsOv=(m.type==='bb'||m.type==='greensome'||m.type==='einzel')?teamStrokes(m):null;
+        var vOvA='',vOvB='';
+        if(tsOv&&tsOv.diff>0){
+          var vOvBadge='<span style="background:rgba(255,255,255,0.08);border-radius:8px;font-size:10px;padding:1px 5px;font-weight:700;margin-left:3px;white-space:nowrap;color:'+(tsOv.weakerIsA?teamCol(m.tA):teamCol(m.tB))+'">+'+tsOv.diff+'</span>';
+          if(tsOv.weakerIsA)vOvA=vOvBadge; else vOvB=vOvBadge;
+        }
         return '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)">'
           +'<span style="font-size:12px;font-weight:600;flex:1">'
-          +'<span style="color:'+teamCol(m.tA)+'">'+teamEmoji(m.tA)+' '+m.pA.join(' & ')+'</span>'
+          +'<span style="color:'+teamCol(m.tA)+'">'+teamEmoji(m.tA)+' '+m.pA.join(' & ')+'</span>'+vOvA
           +' <span style="color:var(--grey);font-weight:400">vs</span> '
-          +'<span style="color:'+teamCol(m.tB)+'">'+teamEmoji(m.tB)+' '+m.pB.join(' & ')+'</span>'
+          +'<span style="color:'+teamCol(m.tB)+'">'+teamEmoji(m.tB)+' '+m.pB.join(' & ')+'</span>'+vOvB
           +'</span>'+badge
           +'<button data-mid="'+m.id+'" onclick="openM(this.dataset.mid)" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:var(--grey);cursor:pointer;font-family:var(--font);margin-left:6px">▶</button>'
           +'</div>';
