@@ -591,7 +591,8 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 .stbl-card-inp .scv{font-size:20px;min-width:40px;line-height:48px;font-weight:700;}
 
 @media print {
-  body > *:not(#print-spielplan) { display: none !important; }
+  body > *:not(#print-spielplan):not(#print-ergebnisse) { display: none !important; }
+  #print-ergebnisse { display: none; }
   body { margin: 0; padding: 0; background: white; }
   #print-spielplan {
     display: block !important;
@@ -628,6 +629,43 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
   .ps-einzel-title { font-size: 15px; font-weight: 700; margin: 20px 0 8px; }
   .ps-einzel-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid #eee; font-size: 12px; }
   .ps-einzel-num { width: 20px; color: #999; font-size: 11px; }
+
+  /* Ergebnis-PDF */
+  .pe-page { padding: 20px; }
+  .pe-page + .pe-page { page-break-before: always; }
+  .pe-title { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+  .pe-sub { font-size: 12px; color: #666; margin-bottom: 16px; }
+  .pe-day-hdr { font-size: 16px; font-weight: 700; border-bottom: 2px solid #333; padding-bottom: 5px; margin-bottom: 10px; }
+  .pe-day-score { display: flex; align-items: center; justify-content: center; gap: 16px; background: #f8f8f8; border-radius: 8px; padding: 10px; margin-bottom: 14px; }
+  .pe-day-rot { font-size: 20px; font-weight: 700; color: #c0392b; }
+  .pe-day-blau { font-size: 20px; font-weight: 700; color: #1a5fa8; }
+  .pe-day-sep { font-size: 18px; color: #999; }
+  .pe-group-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #888; margin: 10px 0 4px; border-top: 1px solid #eee; padding-top: 8px; }
+  .pe-match { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px; gap: 6px; }
+  .pe-teams { flex: 1; }
+  .pe-rot { color: #c0392b; font-weight: 600; }
+  .pe-blau { color: #1a5fa8; font-weight: 600; }
+  .pe-vs { color: #bbb; margin: 0 4px; font-size: 10px; }
+  .pe-result { font-size: 11px; font-weight: 700; min-width: 60px; text-align: right; }
+  .pe-result-rot { color: #c0392b; }
+  .pe-result-blau { color: #1a5fa8; }
+  .pe-result-tie { color: #b7770d; }
+  .pe-result-open { color: #aaa; }
+  .pe-pts { font-size: 11px; color: #888; min-width: 40px; text-align: right; }
+  .pe-ntp-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid #f0f0f0; font-size: 11px; }
+  .pe-ntp-lbl { flex: 1; color: #555; }
+  .pe-total-box { background: #1a1a2e; color: white; border-radius: 10px; padding: 16px; margin: 14px 0; display: flex; align-items: center; justify-content: space-around; }
+  .pe-total-rot { font-size: 28px; font-weight: 700; color: #e74c3c; text-align: center; }
+  .pe-total-blau { font-size: 28px; font-weight: 700; color: #3498db; text-align: center; }
+  .pe-total-lbl { font-size: 10px; color: #aaa; margin-top: 2px; }
+  .pe-total-winner { font-size: 13px; font-weight: 700; text-align: center; color: #f0c040; margin-top: 10px; }
+  .pe-rank-title { font-size: 15px; font-weight: 700; margin: 16px 0 8px; }
+  .pe-rank-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 12px; }
+  .pe-rank-num { width: 24px; font-weight: 700; color: #888; font-size: 11px; }
+  .pe-rank-name { flex: 1; font-weight: 600; }
+  .pe-rank-team-rot { color: #c0392b; }
+  .pe-rank-team-blau { color: #1a5fa8; }
+  .pe-rank-pts { font-weight: 700; font-size: 13px; }
 }
 </style>
 
@@ -2138,7 +2176,10 @@ function bMat(){
     +'<div style="display:flex;align-items:center;justify-content:space-between">'
     +'<div><div style="font-size:14px;font-weight:700">📄 Spielplan als PDF</div>'
     +'<div style="font-size:11px;color:var(--grey);margin-top:2px">Druckansicht mit allen Paarungen und Extraschlägen</div></div>'
-    +'<button class="svb" onclick="printSpielplan()" style="white-space:nowrap">🖨 PDF</button>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="svb" onclick="printSpielplan()" style="flex:1;white-space:nowrap">🖨 Spielplan PDF</button>'
+    +'<button class="svb" onclick="printErgebnisse()" style="flex:1;white-space:nowrap;background:rgba(39,174,96,0.2);border-color:rgba(39,174,96,0.4);color:#2ecc71">🏆 Ergebnis PDF</button>'
+    +'</div>'
     +'</div></div>';
 
   const genSection='<div class="ac" style="border-color:rgba(201,150,10,0.3)"><h3>⚡ Spieltag Generator</h3>'
@@ -3144,6 +3185,176 @@ function printSpielplan(){
   if(!el){el=document.createElement('div');el.id='print-spielplan';document.body.appendChild(el);}
   el.innerHTML=html;
   window.print();
+}
+function printErgebnisse(){
+  var fmtName={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',duebler:'Dübler',einzel:'Einzel'};
+  var dayIcon={'Donnerstag':'☀️','Freitag':'🌤','Samstag':'🏆'};
+  var fmt2=function(v){return Number(v||0).toFixed(1);};
+  var days=[...new Set(MATCHES.map(function(m){return m.day;}))];
+  var tot=getTotals();
+  var playerPts={}; // individuelle Punkte
+  MATCHES.forEach(function(m){
+    var r=results[m.id];if(!r)return;
+    var tAr=m.tA==='rot';
+    var pA=(tAr?r.rotPts||0:r.blauPts||0)/m.pA.length;
+    var pB=(tAr?r.blauPts||0:r.rotPts||0)/m.pB.length;
+    m.pA.forEach(function(p){playerPts[p]=(playerPts[p]||0)+pA;});
+    m.pB.forEach(function(p){playerPts[p]=(playerPts[p]||0)+pB;});
+  });
+  // NTP individuelle Punkte
+  if(EXTRAS.ntp.enabled){
+    (EXTRAS.ntp.rounds||[]).forEach(function(r){
+      var w=getNtpRoundWin(r.id);
+      var pts=EXTRAS.ntp.pts;
+      if(!w)return;
+      MATCHES.filter(function(m){return r.day===m.day&&r.types.includes(m.type);}).forEach(function(m){
+        if(w==='rot'&&m.tA==='rot'){m.pA.forEach(function(p){playerPts[p]=(playerPts[p]||0)+pts/m.pA.length;});}
+        else if(w==='blau'&&m.tB==='blau'){m.pB.forEach(function(p){playerPts[p]=(playerPts[p]||0)+pts/m.pB.length;});}
+        else if(w==='tie'){
+          m.pA.forEach(function(p){playerPts[p]=(playerPts[p]||0)+pts/2/m.pA.length;});
+          m.pB.forEach(function(p){playerPts[p]=(playerPts[p]||0)+pts/2/m.pB.length;});
+        }
+      });
+    });
+  }
+
+  var html='';
+
+  // ── Seiten pro Tag ──
+  days.forEach(function(day,di){
+    var dm=MATCHES.filter(function(m){return m.day===day;});
+    var dr=0,db=0;
+    dm.forEach(function(m){var x=results[m.id];if(x){dr+=x.rotPts||0;db+=x.blauPts||0;}});
+    // NTP für diesen Tag
+    var ntpDayPts={rot:0,blau:0};
+    if(EXTRAS.ntp.enabled){
+      (EXTRAS.ntp.rounds||[]).filter(function(r){return r.day===day;}).forEach(function(r){
+        var w=getNtpRoundWin(r.id);
+        if(w==='rot')ntpDayPts.rot+=EXTRAS.ntp.pts;
+        else if(w==='blau')ntpDayPts.blau+=EXTRAS.ntp.pts;
+        else if(w==='tie'){ntpDayPts.rot+=EXTRAS.ntp.pts/2;ntpDayPts.blau+=EXTRAS.ntp.pts/2;}
+      });
+    }
+    dr+=ntpDayPts.rot;db+=ntpDayPts.blau;
+    var winTxt=dr>db?'🔴 Rot gewinnt den Tag':db>dr?'🔵 Blau gewinnt den Tag':'🤝 Unentschieden';
+
+    html+='<div class="pe-page">';
+    html+='<div class="pe-title">🏆 The Cup '+(EXTRAS.jahr||'2026')+'</div>';
+    html+='<div class="pe-sub">Ergebnisse · '+new Date().toLocaleDateString("de-DE")+'</div>';
+    html+='<div class="pe-day-hdr">'+(dayIcon[day]||'📅')+' '+day+'</div>';
+    html+='<div class="pe-day-score">';
+    html+='<div class="pe-day-rot"><div>'+fmt2(dr)+'</div><div style="font-size:10px;font-weight:400;color:#c0392b">🔴 Rot</div></div>';
+    html+='<div class="pe-day-sep">:</div>';
+    html+='<div class="pe-day-blau"><div>'+fmt2(db)+'</div><div style="font-size:10px;font-weight:400;color:#1a5fa8">🔵 Blau</div></div>';
+    html+='</div>';
+    html+='<div style="text-align:center;font-size:12px;font-weight:700;margin-bottom:12px;color:#555">'+winTxt+'</div>';
+
+    // Matches gruppiert nach Format
+    var groups={};
+    dm.forEach(function(m){
+      var key=fmtName[m.type]||m.type;
+      if(!groups[key])groups[key]={label:key,type:m.type,matches:[]};
+      groups[key].matches.push(m);
+    });
+
+    Object.values(groups).forEach(function(g){
+      html+='<div class="pe-group-lbl">'+g.label;
+      if(g.matches[0]){var c=COURSES[g.matches[0].ckey]||{name:''};html+=' · '+c.name;}
+      html+='</div>';
+      g.matches.forEach(function(m){
+        var x=results[m.id];
+        var rPts=x?(m.tA==="rot"?x.rotPts||0:x.blauPts||0):null;
+        var bPts=x?(m.tA==="rot"?x.blauPts||0:x.rotPts||0):null;
+        var resTxt='',resCls='pe-result-open';
+        if(x&&x.preset){
+          if(rPts>bPts){resTxt='🔴 1:0';resCls='pe-result-rot';}
+          else if(bPts>rPts){resTxt='🔵 0:1';resCls='pe-result-blau';}
+          else{resTxt='½ : ½';resCls='pe-result-tie';}
+        } else if(x&&x.holesPlayed>0){
+          var ru=x.rotUP||0,bu=x.blauUP||0;
+          if(x.rotPts>0||x.blauPts>0){
+            if(x.rotPts>x.blauPts){var diff=m.holes-x.holesPlayed;resTxt='🔴 '+(ru-bu)+'&'+diff;resCls='pe-result-rot';}
+            else{var diff=m.holes-x.holesPlayed;resTxt='🔵 '+(bu-ru)+'&'+diff;resCls='pe-result-blau';}
+          } else {
+            if(x.isStabl){resTxt=ru>bu?'🔴 '+ru+'P':bu>ru?'🔵 '+bu+'P':'AS';resCls=ru>bu?'pe-result-rot':bu>ru?'pe-result-blau':'pe-result-tie';}
+            else{resTxt=ru>bu?'🔴 '+(ru-bu)+' UP':bu>ru?'🔵 '+(bu-ru)+' UP':'AS · L'+x.holesPlayed;resCls=ru>bu?'pe-result-rot':bu>ru?'pe-result-blau':'pe-result-tie';}
+          }
+        } else {resTxt='–';resCls='pe-result-open';}
+        var ptsStr=rPts!=null?(fmt2(rPts)+' : '+fmt2(bPts)):'';
+        html+='<div class="pe-match">';
+        html+='<div class="pe-teams"><span class="pe-rot">'+m.pA.join(' &amp; ')+'</span>';
+        html+='<span class="pe-vs">vs</span>';
+        html+='<span class="pe-blau">'+m.pB.join(' &amp; ')+'</span></div>';
+        html+='<div class="pe-pts">'+ptsStr+'</div>';
+        html+='<div class="pe-result '+resCls+'">'+resTxt+'</div>';
+        html+='</div>';
+      });
+    });
+
+    // NTP für diesen Tag
+    if(EXTRAS.ntp.enabled){
+      var ntpDay=(EXTRAS.ntp.rounds||[]).filter(function(r){return r.day===day;});
+      if(ntpDay.length){
+        html+='<div class="pe-group-lbl">📍 Nearest to the Pin</div>';
+        ntpDay.forEach(function(r){
+          var w=getNtpRoundWin(r.id);
+          var wTxt=w==='rot'?'🔴 Rot':w==='blau'?'🔵 Blau':w==='tie'?'½ Unentschieden':'–';
+          var wCls=w==='rot'?'pe-result-rot':w==='blau'?'pe-result-blau':'pe-result-tie';
+          var pts=w?EXTRAS.ntp.pts:0;
+          html+='<div class="pe-ntp-row">';
+          html+='<span class="pe-ntp-lbl">'+r.label+' (Loch '+(r.holeIndex+1)+')</span>';
+          html+='<span class="pe-pts">'+fmt2(w==="tie"?pts/2:w?pts:0)+' : '+fmt2(w==="tie"?pts/2:w&&w!=="rot"?pts:0)+'</span>';
+          html+='<span class="pe-result '+wCls+'">'+wTxt+'</span>';
+          html+='</div>';
+        });
+      }
+    }
+
+    html+='</div>'; // pe-page
+  });
+
+  // ── Letzte Seite: Gesamtstand + Rangliste ──
+  var allPl=PL.rot.map(function(p){return{n:p.n,team:'rot'};}).concat(PL.blau.map(function(p){return{n:p.n,team:'blau'};}));
+  allPl.sort(function(a,b){return (playerPts[b.n]||0)-(playerPts[a.n]||0);});
+
+  html+='<div class="pe-page">';
+  html+='<div class="pe-title">🏆 Gesamtergebnis</div>';
+  html+='<div class="pe-sub">The Cup '+(EXTRAS.jahr||'2026')+' · '+new Date().toLocaleDateString("de-DE")+'</div>';
+
+  // Gesamtstand Box
+  html+='<div class="pe-total-box">';
+  html+='<div><div class="pe-total-rot">'+fmt2(tot.rot)+'</div><div class="pe-total-lbl" style="color:#e88">🔴 Team Rot</div></div>';
+  html+='<div style="color:#666;font-size:30px;font-weight:300">:</div>';
+  html+='<div><div class="pe-total-blau">'+fmt2(tot.blau)+'</div><div class="pe-total-lbl" style="color:#88e">🔵 Team Blau</div></div>';
+  html+='</div>';
+  var winner=tot.rot>tot.blau?'🏆 Team Rot gewinnt The Cup!':tot.blau>tot.rot?'🏆 Team Blau gewinnt The Cup!':'🤝 Unentschieden!';
+  html+='<div class="pe-total-winner">'+winner+'</div>';
+
+  // Rangliste
+  html+='<div class="pe-rank-title">🏅 Individuelle Rangliste</div>';
+  allPl.forEach(function(p,i){
+    var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+    var cls=p.team==='rot'?'pe-rank-team-rot':'pe-rank-team-blau';
+    html+='<div class="pe-rank-row">';
+    html+='<span class="pe-rank-num">'+medal+'</span>';
+    html+='<span class="pe-rank-name '+cls+'">'+p.n+'</span>';
+    html+='<span style="font-size:10px;color:#888">'+(p.team==='rot'?'🔴 Rot':'🔵 Blau')+'</span>';
+    html+='<span class="pe-rank-pts '+cls+'">'+fmt2(playerPts[p.n]||0)+' Pkt.</span>';
+    html+='</div>';
+  });
+  html+='</div>';
+
+  var el=document.getElementById('print-ergebnisse');
+  if(!el){el=document.createElement('div');el.id='print-ergebnisse';document.body.appendChild(el);}
+  el.innerHTML=html;
+
+  // Spielplan ausblenden, Ergebnisse zeigen
+  var sp=document.getElementById('print-spielplan');
+  if(sp)sp.style.display='none';
+  el.style.display='block';
+  window.print();
+  if(sp)sp.style.display='';
+  el.style.display='none';
 }
 function chkPw(){const e=document.getElementById('pw');if(e&&e.value===PW){admOn=true;renderAdm();showToast('Admin entsperrt ✓');}else{showToast('Falsches Passwort');if(e)e.value='';}}
 function setR(mid,w){const m=MATCHES.find(x=>x.id===mid);if(w==='rot')results[mid]={rotPts:1,blauPts:0,holesPlayed:m.holes,preset:true};else if(w==='blau')results[mid]={rotPts:0,blauPts:1,holesPlayed:m.holes,preset:true};else results[mid]={rotPts:0.5,blauPts:0.5,holesPlayed:m.holes,preset:true};saveData();renderAdm();renderSB();renderSP();showToast('Gespeichert ✓');}
