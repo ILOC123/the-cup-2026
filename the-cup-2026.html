@@ -2173,14 +2173,11 @@ function bMat(){
     .map(function(e){return'<option value="'+e[0]+'">'+e[1].name+'</option>';}).join('');
 
   const pdfSection='<div class="ac" style="border-color:rgba(99,179,237,0.25);margin-bottom:4px">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between">'
-    +'<div><div style="font-size:14px;font-weight:700">📄 Spielplan als PDF</div>'
-    +'<div style="font-size:11px;color:var(--grey);margin-top:2px">Druckansicht mit allen Paarungen und Extraschlägen</div></div>'
-    +'<div style="display:flex;gap:8px">'
-    +'<button class="svb" onclick="printSpielplan()" style="flex:1;white-space:nowrap">🖨 Spielplan PDF</button>'
-    +'<button class="svb" onclick="printErgebnisse()" style="flex:1;white-space:nowrap;background:rgba(39,174,96,0.2);border-color:rgba(39,174,96,0.4);color:#2ecc71">🏆 Ergebnis PDF</button>'
-    +'</div>'
-    +'</div></div>';
+    +'<div style="font-size:14px;font-weight:700;margin-bottom:4px">📄 PDF exportieren</div>'
+    +'<div style="font-size:11px;color:var(--grey);margin-bottom:12px">Druckansicht öffnen → Im Browser als PDF speichern</div>'
+    +'<button class="svb" style="width:100%;margin-bottom:8px;padding:14px;font-size:14px" onclick="printSpielplan()">🖨 Spielplan PDF</button>'
+    +'<button class="svb" style="width:100%;padding:14px;font-size:14px;background:rgba(39,174,96,0.2);border-color:rgba(39,174,96,0.4);color:#2ecc71" onclick="printErgebnisse()">🏆 Ergebnis PDF</button>'
+    +'</div>';
 
   const genSection='<div class="ac" style="border-color:rgba(201,150,10,0.3)"><h3>⚡ Spieltag Generator</h3>'
     +'<div style="font-size:11px;color:var(--grey);margin-bottom:14px">'
