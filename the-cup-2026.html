@@ -589,6 +589,35 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 .stbl-card.bb .stbl-card-inp{border-color:rgba(41,128,185,0.4);}
 .stbl-card-inp .scbtn{width:44px;height:48px;font-size:24px;}
 .stbl-card-inp .scv{font-size:20px;min-width:40px;line-height:48px;font-weight:700;}
+
+@media print {
+  body * { visibility: hidden !important; }
+  #print-spielplan, #print-spielplan * { visibility: visible !important; }
+  #print-spielplan {
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100%;
+    background: white !important;
+    color: black !important;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .ps-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .ps-sub { font-size: 12px; color: #666; margin-bottom: 16px; }
+  .ps-day { font-size: 15px; font-weight: 700; margin: 14px 0 6px; border-bottom: 2px solid #333; padding-bottom: 4px; }
+  .ps-group-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #888; margin: 8px 0 4px; }
+  .ps-match { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px solid #eee; font-size: 12px; }
+  .ps-match-teams { flex: 1; }
+  .ps-rot { color: #c0392b; font-weight: 600; }
+  .ps-blau { color: #1a5fa8; font-weight: 600; }
+  .ps-vs { color: #999; margin: 0 6px; }
+  .ps-vorg { font-size: 11px; font-weight: 700; margin-left: 6px; border-radius: 4px; padding: 1px 5px; }
+  .ps-vorg-rot { color: #c0392b; background: rgba(192,57,43,0.1); }
+  .ps-vorg-blau { color: #1a5fa8; background: rgba(26,95,168,0.1); }
+  .ps-info { font-size: 10px; color: #888; margin-left: auto; white-space: nowrap; padding-left: 10px; }
+  .ps-footer { margin-top: 20px; font-size: 10px; color: #aaa; text-align: center; }
+}
 </style>
 
 
@@ -2094,6 +2123,13 @@ function bMat(){
   const courseSel=Object.entries(COURSES).filter(function(e){return e[0]!=='PAR3';})
     .map(function(e){return'<option value="'+e[0]+'">'+e[1].name+'</option>';}).join('');
 
+  const pdfSection='<div class="ac" style="border-color:rgba(99,179,237,0.25);margin-bottom:4px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between">'
+    +'<div><div style="font-size:14px;font-weight:700">📄 Spielplan als PDF</div>'
+    +'<div style="font-size:11px;color:var(--grey);margin-top:2px">Druckansicht mit allen Paarungen und Extraschlägen</div></div>'
+    +'<button class="svb" onclick="printSpielplan()" style="white-space:nowrap">🖨 PDF</button>'
+    +'</div></div>';
+
   const genSection='<div class="ac" style="border-color:rgba(201,150,10,0.3)"><h3>⚡ Spieltag Generator</h3>'
     +'<div style="font-size:11px;color:var(--grey);margin-bottom:14px">'
     +'Paarungen kommen aus der optimalen Matrix. Du wählst nur Tag, Spielform, Löcher und Platz.'
@@ -2261,7 +2297,8 @@ function bMat(){
     +'<button class="svb" onclick="addDueblerMatches()" style="width:100%;margin-top:4px">➕ Dübler-Matches hinzufügen</button>'
     +'<button onclick="removeDueblerMatches()" style="width:100%;margin-top:6px;padding:10px;border-radius:10px;border:1px solid rgba(231,76,60,0.3);background:transparent;color:rgba(231,76,60,0.8);font-size:13px;cursor:pointer">🗑 Dübler-Matches entfernen</button>'
     +'</div>';
-  return genSection
+  return pdfSection
+    +genSection
     +dueblerSection
     +overview
     +'<div class="ac" style="margin-top:4px">'
@@ -2986,6 +3023,62 @@ function removeDueblerMatches(){
   MATCHES.filter(function(m){return m.type==='duebler';}).forEach(function(m){delete results[m.id];delete scores[m.id];});
   saveData();recalcAll();renderAdm();renderSB();renderSC();
   showToast(removed+' Dübler-Match'+(removed===1?'':'es')+' entfernt ✓');
+}
+function printSpielplan(){
+  var fmtName={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',duebler:'Dübler',einzel:'Einzel'};
+  var dayIcon={'Donnerstag':'☀️ Donnerstag','Freitag':'🌤 Freitag','Samstag':'🏆 Samstag'};
+  var courseHcpStr=function(name,ckey){return courseHcp(getHcp(name),ckey);};
+
+  // Gruppiere Matches nach Tag + Format
+  var days=[...new Set(MATCHES.map(function(m){return m.day;}))];
+  var html='<div class="ps-title">🏆 The Cup '+( EXTRAS.jahr||'2026')+'</div>';
+  html+='<div class="ps-sub">Spielplan · Erstellt: '+new Date().toLocaleDateString('de-DE')+'</div>';
+
+  days.forEach(function(day){
+    var dm=MATCHES.filter(function(m){return m.day===day;});
+    if(!dm.length)return;
+    html+='<div class="ps-day">'+(dayIcon[day]||day)+'</div>';
+
+    // Gruppiere nach Format+Kurs
+    var groups={};
+    dm.forEach(function(m){
+      var key=m.fmt+'||'+m.ckey;
+      if(!groups[key])groups[key]={fmt:m.fmt,type:m.type,ckey:m.ckey,matches:[]};
+      groups[key].matches.push(m);
+    });
+
+    Object.values(groups).forEach(function(g){
+      var c=COURSES[g.ckey]||{name:g.ckey};
+      var nL={all:'18 Löcher',front:'9L Vorne','9':'9 Löcher',back:'9L Hinten'}[g.matches[0].nine||'all'];
+      html+='<div class="ps-group-lbl">'+( fmtName[g.type]||g.fmt)+' · '+c.name+' · '+nL+'</div>';
+
+      g.matches.forEach(function(m){
+        var ts=(m.type==='bb'||m.type==='greensome'||m.type==='einzel')?teamStrokes(m):null;
+        var vorgA='',vorgB='';
+        if(ts&&ts.diff>0){
+          if(ts.weakerIsA) vorgA='<span class="ps-vorg ps-vorg-'+(m.tA)+'" >+'+ts.diff+'</span>';
+          else vorgB='<span class="ps-vorg ps-vorg-'+(m.tB)+'" >+'+ts.diff+'</span>';
+        }
+        var tK=TEES[m.ckey]||'Gelb';
+        html+='<div class="ps-match">'
+          +'<div class="ps-match-teams">'
+          +'<span class="ps-rot">'+m.pA.join(' &amp; ')+'</span>'+vorgA
+          +'<span class="ps-vs">vs</span>'
+          +'<span class="ps-blau">'+m.pB.join(' &amp; ')+'</span>'+vorgB
+          +'</div>'
+          +'<span class="ps-info">Tee '+tK+'</span>'
+          +'</div>';
+      });
+    });
+  });
+
+  html+='<div class="ps-footer">🔴 Team Rot &nbsp;|&nbsp; 🔵 Team Blau &nbsp;|&nbsp; +X = Extraschläge</div>';
+
+  // Druckbereich erstellen / aktualisieren
+  var el=document.getElementById('print-spielplan');
+  if(!el){el=document.createElement('div');el.id='print-spielplan';document.body.appendChild(el);}
+  el.innerHTML=html;
+  window.print();
 }
 function chkPw(){const e=document.getElementById('pw');if(e&&e.value===PW){admOn=true;renderAdm();showToast('Admin entsperrt ✓');}else{showToast('Falsches Passwort');if(e)e.value='';}}
 function setR(mid,w){const m=MATCHES.find(x=>x.id===mid);if(w==='rot')results[mid]={rotPts:1,blauPts:0,holesPlayed:m.holes,preset:true};else if(w==='blau')results[mid]={rotPts:0,blauPts:1,holesPlayed:m.holes,preset:true};else results[mid]={rotPts:0.5,blauPts:0.5,holesPlayed:m.holes,preset:true};saveData();renderAdm();renderSB();renderSP();showToast('Gespeichert ✓');}
