@@ -1333,7 +1333,6 @@ function renderSB(){
     const ai=DAY_ORDER.indexOf(a);const bi=DAY_ORDER.indexOf(b);
     return(ai<0?99:ai)-(bi<0?99:bi);
   });const pt=getPTot();
-  const med=['🥇','🥈','🥉'];
   const sorted=[...PL.rot.map(p=>({...p,team:'rot'})),...PL.blau.map(p=>({...p,team:'blau'}))]
     .map(p=>({...p,pts:pt[p.n]||0})).sort((a,b2)=>b2.pts-a.pts);
   const ntpG=EXTRAS.ntp.enabled&&EXTRAS.ntp.rounds&&EXTRAS.ntp.rounds.length>0;
@@ -1773,7 +1772,6 @@ function renderEntry(m){
         +`<div style="text-align:center;font-size:9px;font-weight:700;color:${tBcol}">${tBlbl}</div>`
         +`<div style="font-size:9px;color:var(--grey)">Stand</div>`;
   }
-  let totalRow=''; // Punkteanzeige im fixierten Strip oben - kein totalRow nötig
   const guestBanner=isGuest?'<div style="background:rgba(201,150,10,0.12);border:1.5px solid rgba(201,150,10,0.35);border-radius:10px;margin:10px 12px 0;padding:9px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gold)">👁 <span><strong>Zuschauer-Modus</strong> – Nur Anzeige, keine Eingaben möglich</span></div>':'';
   if(isGuest)el.classList.add('guest-mode'); else el.classList.remove('guest-mode');
   el.innerHTML=guestBanner+`<div class="seh"><button class="bk" onclick="back()">‹ Zurück</button>
@@ -1810,7 +1808,7 @@ function renderEntry(m){
       <div style="font-size:10px;color:var(--grey);margin-top:1px">HCP ${m.pB.map(p=>courseHcp(getHcp(p),m.ckey)).join(' / ')}</div>
     </div>
   </div>`}${info}
-  <div class="loch-tbl">${isStabl2v2?'':'<div class="lr hdr" style="grid-template-columns:'+gc+';gap:4px;padding:4px 6px;">'+hdr+'</div>'}${rows}</div>${totalRow}`;
+  <div class="loch-tbl">${isStabl2v2?'':'<div class="lr hdr" style="grid-template-columns:'+gc+';gap:4px;padding:4px 6px;">'+hdr+'</div>'}${rows}</div>`;
 }
 
 function saveNtpMC(el){
