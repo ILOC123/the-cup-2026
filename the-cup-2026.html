@@ -950,6 +950,59 @@ let aDay='Donnerstag',scView='list',aMatch=null;
 let admOn=false,admTab='res',hcpCk='OLD';
 const PW='cup2026';
 
+// ── WETTER (yr.no / api.met.no) ───────────────────────────
+const WX_LAT=47.93323202767846,WX_LON=9.771988843254231;
+let wxCache=null,wxFetchedAt=0;
+function wxEmoji(s){
+  if(!s)return'🌡️';
+  if(s.includes('clearsky'))return'☀️';
+  if(s.includes('fair'))return'🌤️';
+  if(s.includes('partlycloudy'))return'⛅';
+  if(s.includes('cloudy'))return'☁️';
+  if(s.includes('fog'))return'🌫️';
+  if(s.includes('thunder'))return'⛈️';
+  if(s.includes('heavyrain'))return'🌧️';
+  if(s.includes('rain')||s.includes('sleet'))return'🌦️';
+  if(s.includes('snow'))return'❄️';
+  return'🌡️';
+}
+function wxDayDate(dayName){
+  const map={Donnerstag:4,Freitag:5,Samstag:6};
+  const target=map[dayName];if(target===undefined)return null;
+  const d=new Date();let diff=target-d.getDay();if(diff<0)diff+=7;
+  d.setDate(d.getDate()+diff);return d;
+}
+function wxForDate(ts,date){
+  const ymd=date.toISOString().slice(0,10);
+  const same=ts.filter(t=>t.time.startsWith(ymd));if(!same.length)return null;
+  return same.find(t=>t.time.includes('T12:00'))||same.find(t=>t.time.includes('T11:00'))||same.find(t=>t.time.includes('T13:00'))||same[0];
+}
+async function fetchWx(){
+  if(wxCache&&Date.now()-wxFetchedAt<30*60*1000)return wxCache;
+  try{
+    const r=await fetch('https://api.met.no/weatherapi/locationforecast/2.0/compact?lat='+WX_LAT+'&lon='+WX_LON,
+      {headers:{'User-Agent':'TheCup2026/1.0 golf-app'}});
+    if(!r.ok)return null;
+    wxCache=await r.json();wxFetchedAt=Date.now();return wxCache;
+  }catch(e){return null;}
+}
+async function updateWxInSB(){
+  const data=await fetchWx();if(!data)return;
+  const ts=data.properties&&data.properties.timeseries;if(!ts)return;
+  ['Donnerstag','Freitag','Samstag'].forEach(function(day){
+    var el=document.getElementById('wx-'+day);if(!el)return;
+    var date=wxDayDate(day);if(!date)return;
+    var entry=wxForDate(ts,date);if(!entry)return;
+    var d=entry.data;if(!d)return;
+    var temp=d.instant&&d.instant.details&&d.instant.details.air_temperature;
+    var symbol=(d.next_1_hours&&d.next_1_hours.summary&&d.next_1_hours.summary.symbol_code)
+      ||(d.next_6_hours&&d.next_6_hours.summary&&d.next_6_hours.summary.symbol_code);
+    var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
+    el.textContent=wxEmoji(symbol)+(temp!==undefined?' '+Math.round(temp)+'°C':'')+(wind!==undefined?' · 💨'+Math.round(wind)+'m/s':'');
+    el.style.color='var(--grey-l)';
+  });
+}
+
 // Anti-Doppelklick für Mobile: ontouchstart setzt Flag, onclick prüft
 var _tapActive=false;
 function tap(el){
@@ -1401,7 +1454,9 @@ function renderSB(){
     }).join('');
     return '<div class="fc">'
       +'<div class="fch" data-did="'+did+'" onclick="toggleDayCard(this)" style="cursor:pointer">'
-      +'<div><div class="cn">'+ic+' '+day+'</div><div class="cs">'+dm.length+' Matches</div></div>'
+      +'<div><div class="cn">'+ic+' '+day+'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px"><span class="cs">'+dm.length+' Matches</span>'
+      +'<span id="wx-'+day+'" style="font-size:11px;color:var(--grey)">⏳</span></div></div>'
       +'<div style="display:flex;align-items:center;gap:8px">'
       +'<div class="fsc"><div class="fsn rot">'+fmt(dr)+'</div><div class="fss">:</div><div class="fsn blau">'+fmt(db)+'</div>'+wp+'</div>'
       +'<span class="day-arr" style="color:var(--grey);font-size:14px;flex-shrink:0">▸</span>'
@@ -1429,6 +1484,7 @@ function renderSB(){
       +'<div class="pp '+ppCls+'">'+fmt(pt[p.n]||0)+'</div>'
       +'</div>';
   }).join('')}`;
+  updateWxInSB();
 }
 
 function renderSC(){
