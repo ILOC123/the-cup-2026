@@ -2649,16 +2649,9 @@ function buildMtx(extraMatches){
   return{mtx,pmtx,rot,blau};
 }
 
-// ─── DUELL-MATRIX ─────────────────────────────────────────
 // ─── FESTE DUELL-MATRIX (lt. Turnierdokument) ─────────────
-// Zeile = Rot-Spieler (Index 0-5), Spalte = Blau-Spieler (Index 0-5)
-// 1 = Einzel-Paarung, 2 = Teampaarung
-// Rot:  [Gubi, Luca, Woerz, Oli, Calvin, Schimi]
-// Blau: [Kenneth, Nippu, Reto, Robin, Simon, Justin]
-// ── OPTIMALE PAARUNGSSTRUKTUR (positions-basiert, jahresunabhaengig) ──────
 // Zeile=Rot-Index(0-5), Spalte=Blau-Index(0-5)
-// 0 = Einzel-Kandidat (im Team nie gespielt → natuerliche Einzel-Paarung)
-// 2 = 2x im Team gespielt
+// 0 = Einzel-Kandidat (nie im Team gespielt), 2 = 2x im Team gespielt
 // Struktur: Rot0↔Blau5, Rot1↔Blau1, Rot2↔Blau3, Rot3↔Blau0, Rot4↔Blau4, Rot5↔Blau2
 const DUELL_MATRIX_DOC=[
   [2,2,2,2,2,0], // Rot0 -> Blau5 (Einzel)
@@ -2683,32 +2676,6 @@ function getSuggestedEinzelPartner(rotPlayer){
   if(ri<0)return null;
   const bi=DUELL_MATRIX_DOC[ri].indexOf(0);
   return bi>=0?blau[bi]:null;
-}
-
-function buildMtx(extraMatches){
-  const rot=PL.rot.map(p=>p.n);const blau=PL.blau.map(p=>p.n);
-  const allP=rot.concat(blau);
-  // Gegner-Matrix: wie oft hat Rot-Spieler r gegen Blau-Spieler b gespielt
-  const mtx={};rot.forEach(r=>{mtx[r]={};blau.forEach(b=>{mtx[r][b]=0;});});
-  // Partner-Matrix: wie oft haben zwei Spieler zusammen gespielt
-  const pmtx={};allP.forEach(p=>{pmtx[p]={};allP.forEach(q=>{pmtx[p][q]=0;});});
-  const allMatches=MATCHES.concat(extraMatches||[]);
-  allMatches.forEach(function(m){
-    // Gegner zählen
-    const rP=m.pA.concat(m.pB).filter(p=>rot.includes(p));
-    const bP=m.pA.concat(m.pB).filter(p=>blau.includes(p));
-    rP.forEach(r=>{bP.forEach(b=>{if(mtx[r])mtx[r][b]++;});});
-    // Partner zählen (innerhalb pA und innerhalb pB)
-    for(let i=0;i<m.pA.length;i++)for(let j=i+1;j<m.pA.length;j++){
-      if(pmtx[m.pA[i]])pmtx[m.pA[i]][m.pA[j]]=(pmtx[m.pA[i]][m.pA[j]]||0)+1;
-      if(pmtx[m.pA[j]])pmtx[m.pA[j]][m.pA[i]]=(pmtx[m.pA[j]][m.pA[i]]||0)+1;
-    }
-    for(let i=0;i<m.pB.length;i++)for(let j=i+1;j<m.pB.length;j++){
-      if(pmtx[m.pB[i]])pmtx[m.pB[i]][m.pB[j]]=(pmtx[m.pB[i]][m.pB[j]]||0)+1;
-      if(pmtx[m.pB[j]])pmtx[m.pB[j]][m.pB[i]]=(pmtx[m.pB[j]][m.pB[i]]||0)+1;
-    }
-  });
-  return{mtx,pmtx,rot,blau};
 }
 
 // ─── AUTO-PAIRING ──────────────────────────────────────────
