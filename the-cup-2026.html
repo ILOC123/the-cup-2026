@@ -1601,9 +1601,9 @@ function renderEntry(m){
         return '<div class="stbl-card '+teamCls2+'">'
           +'<div class="stbl-card-name">'+pName2+stkBadge2+'</div>'
           +'<div class="stbl-card-inp">'
-          +'<button class="scbtn" data-mid="'+mid2+'" data-h="'+hole2+'" data-pn="'+pName2+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,-1)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,-1)">−</button>'
+          +'<button class="scbtn" data-mid="'+mid2+'" data-h="'+hole2+'" data-pn="'+pName2+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,-1)">−</button>'
           +'<div class="scv '+cls2+'" id="'+pid2+'">'+( v2||'0')+'</div>'
-          +'<button class="scbtn" data-mid="'+mid2+'" data-h="'+hole2+'" data-pn="'+pName2+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,1)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,1)">+</button>'
+          +'<button class="scbtn" data-mid="'+mid2+'" data-h="'+hole2+'" data-pn="'+pName2+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,1)">+</button>'
           +'</div>'
           +ptsBadge2+'</div>';
       };
@@ -1689,7 +1689,6 @@ function renderEntry(m){
         +'<span style="font-size:11px;color:var(--grey)">Vg '+vg+'</span>'
         +(c.laenge?'<span style="font-size:11px;color:var(--grey)">'+c.laenge[h]+'m</span>':'')
         +(isNtp?'<span style="font-size:9px;color:var(--gold);margin-left:auto">📍 NTP</span>':'')
-        +(isNtp?'':'')  // kein Matchplay-Badge beim Stableford
         +'</div>'
         +allInputs
         +'</div>';
