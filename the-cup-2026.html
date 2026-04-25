@@ -1223,42 +1223,6 @@ function buildSplash(){
 }
 
 function selectTeam(team){
-  // Show step 2: player grid for this team
-  showStep(2);
-  var lbl=document.getElementById('sp-team-lbl');
-  if(lbl)lbl.textContent=(team==='rot'?'🔴 Team Rot':'🔵 Team Blau')+' – Wähle deinen Namen';
-  // Build player grid for this team only
-  var players=(team==='rot'?PL.rot:PL.blau)||[];
-  var grid=document.getElementById('pgrid');
-  if(!grid)return;
-  grid.innerHTML=players.map(function(p){
-    return'<button class="pbtn '+(team==='rot'?'rot':'blau')+'" id="pb-'+p.n+'" data-n="'+p.n+'" data-t="'+team+'" onclick="selPlayer(this.dataset.n,this.dataset.t)">'
-      +'<div class="dot"></div>'
-      +'<div class="pn">'+p.n+'</div>'
-      +'<div class="ph">HCP '+p.hcp+'</div>'
-      +'</button>';
-  }).join('');
-  // Hide weiter until player selected
-  var btn=document.getElementById('stbtn');
-  if(btn)btn.style.display='none';
-  curP=null;curT=team;
-}
-
-function selPlayer(name,team){
-  curP=name;curT=team;
-  document.querySelectorAll('.pbtn').forEach(function(b){b.classList.remove('sel');});
-  var btn=document.getElementById('pb-'+name);
-  if(btn)btn.classList.add('sel');
-  var wb=document.getElementById('stbtn');
-  if(wb){wb.style.display='block';}
-}
-
-function backToTeam(){
-  showStep(1);
-  curP=null;curT=null;
-}
-
-function selectTeam(team){
   // Step 2: show players of selected team
   document.getElementById('sp-step1').style.display='none';
   document.getElementById('sp-step2').style.display='block';
