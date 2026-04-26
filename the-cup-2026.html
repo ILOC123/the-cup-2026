@@ -2037,10 +2037,10 @@ function bRes(){
 
 function savTeetime(day,slot,val){
   if(!EXTRAS.teetimes)EXTRAS.teetimes={};
-  if(typeof EXTRAS.teetimes[day]!=='object'||EXTRAS.teetimes[day]===null)EXTRAS.teetimes[day]={t1:'',t2:''};
+  if(typeof EXTRAS.teetimes[day]!=='object'||EXTRAS.teetimes[day]===null)EXTRAS.teetimes[day]={t1:'',t2:'',date:''};
   EXTRAS.teetimes[day][slot]=val;
   saveData();renderSB();
-  showToast('🕗 Teetime gespeichert: '+val+' Uhr');
+  showToast(slot==='date'?'📅 Datum gespeichert: '+val:'🕗 Teetime gespeichert: '+val+' Uhr');
 }
 
 function saveJahr(){
