@@ -940,7 +940,7 @@ function buildDEF_M(){
   ];
 }
 const DEF_M=[]; // wird dynamisch via buildDEF_M() nach PL-Load befuellt
-const DEF_EXTRAS={ntp:{enabled:false,pts:0.25,rounds:[]},playerPw:'cup2026',einzel:[],jahr:'2026'};
+const DEF_EXTRAS={ntp:{enabled:false,pts:0.25,rounds:[]},playerPw:'cup2026',einzel:[],jahr:'2026',teetimes:{}};
 const DEF_TEES={OLD:'Gelb',NEW:'Gelb',PAR3:'Standard'};
 
 let PL,MATCHES,EXTRAS,TEES;
@@ -1020,6 +1020,7 @@ function loadData(){
   if(EXTRAS.ntp.games){delete EXTRAS.ntp.games;}
   if(!EXTRAS.einzel)EXTRAS.einzel=[];
   if(!EXTRAS.jahr)EXTRAS.jahr='2026';
+  if(!EXTRAS.teetimes)EXTRAS.teetimes={};
   const st=localStorage.getItem('c26t');TEES=st?JSON.parse(st):JSON.parse(JSON.stringify(DEF_TEES));
   try{scores=JSON.parse(localStorage.getItem('c26s')||'{}');}catch(e){scores={};}
   try{results=JSON.parse(localStorage.getItem('c26r')||'{}');}catch(e){results={};}
@@ -1456,6 +1457,7 @@ function renderSB(){
       +'<div class="fch" data-did="'+did+'" onclick="toggleDayCard(this)" style="cursor:pointer">'
       +'<div><div class="cn">'+ic+' '+day+'</div>'
       +'<div style="display:flex;align-items:center;gap:8px"><span class="cs">'+dm.length+' Matches</span>'
+      +((EXTRAS.teetimes&&EXTRAS.teetimes[day])?'<span style="font-size:11px;color:var(--grey-l)">🕗 '+EXTRAS.teetimes[day]+' Uhr</span>':'')
       +'<span id="wx-'+day+'" style="font-size:11px;color:var(--grey)">⏳</span></div></div>'
       +'<div style="display:flex;align-items:center;gap:8px">'
       +'<div class="fsc"><div class="fsn rot">'+fmt(dr)+'</div><div class="fss">:</div><div class="fsn blau">'+fmt(db)+'</div>'+wp+'</div>'
@@ -2021,6 +2023,13 @@ function bRes(){
   return days;
 }
 
+function savTeetime(day,val){
+  if(!EXTRAS.teetimes)EXTRAS.teetimes={};
+  EXTRAS.teetimes[day]=val;
+  saveData();renderSB();
+  showToast('🕗 Teetime gespeichert: '+val+' Uhr');
+}
+
 function saveJahr(){
   var el=document.getElementById('set-jahr');
   if(!el)return;
@@ -2056,8 +2065,16 @@ function bSettings(){
   <div class="ac"><h3>Infos per Tag</h3>${DAYS.map(day=>{
     const dm=MATCHES.filter(m=>m.day===day);if(!dm.length)return'';
     const ck=dm[0].ckey;const tK=TEES[ck]||'Gelb';const tD=COURSES[ck].tees[tK]||Object.values(COURSES[ck].tees)[0];
+    const tt=EXTRAS.teetimes&&EXTRAS.teetimes[day]||'';
     return`<div class="trow"><div><div class="trow-lbl">${day}</div><div class="trow-sub">${COURSES[ck].name} · <span class="tee-pill t${tK}">${tK}</span> · ${dm.length} Matches</div></div>
-      <div style="font-size:11px;color:var(--grey)">CR ${tD.cr} / SR ${tD.sr}</div></div>`;
+      <div style="display:flex;align-items:center;gap:6px">
+        <div style="font-size:11px;color:var(--grey)">CR ${tD.cr} / SR ${tD.sr}</div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span style="font-size:11px;color:var(--grey-l)">🕗</span>
+          <input type="time" class="ain" style="width:90px;font-size:13px;padding:4px 6px" value="${tt}"
+            data-day="${day}" onchange="savTeetime(this.dataset.day,this.value)">
+        </div>
+      </div></div>`;
   }).join('')}
   <div style="font-size:11px;color:var(--grey);margin-top:8px">Platz pro Match ändern → Tab 🎯 Spielplan</div></div>`;
 }
