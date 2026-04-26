@@ -2120,7 +2120,9 @@ function savTeetime(day,slot,val){
   if(typeof EXTRAS.teetimes[day]!=='object'||EXTRAS.teetimes[day]===null)EXTRAS.teetimes[day]={t1:'',t2:''};
   EXTRAS.teetimes[day][slot]=val;
   saveData();renderSB();
-  showToast('🕗 Teetime gespeichert: '+val+' Uhr');
+  var el=document.querySelector('[data-day="'+day+'"][data-slot="'+slot+'"]');
+  if(el)el.value=val;
+  showToast(val?'🕗 Teetime gespeichert: '+val+' Uhr':'🕗 Teetime zurückgesetzt');
 }
 
 function saveJahr(){
@@ -2171,11 +2173,13 @@ function bSettings(){
             <span style="font-size:11px;color:var(--grey-l)">🕗 R1</span>
             <input type="time" class="ain" style="width:90px;font-size:13px;padding:4px 6px" value="${ttObj.t1||''}"
               data-day="${day}" data-slot="t1" onchange="savTeetime(this.dataset.day,this.dataset.slot,this.value)">
+            <button onclick="savTeetime('${day}','t1','')" style="background:none;border:none;color:var(--grey);font-size:16px;cursor:pointer;padding:0 2px;line-height:1" title="Zurücksetzen">✕</button>
           </div>
           <div style="display:flex;align-items:center;gap:4px">
             <span style="font-size:11px;color:var(--grey-l)">🕗 R2</span>
             <input type="time" class="ain" style="width:90px;font-size:13px;padding:4px 6px" value="${ttObj.t2||''}"
               data-day="${day}" data-slot="t2" onchange="savTeetime(this.dataset.day,this.dataset.slot,this.value)">
+            <button onclick="savTeetime('${day}','t2','')" style="background:none;border:none;color:var(--grey);font-size:16px;cursor:pointer;padding:0 2px;line-height:1" title="Zurücksetzen">✕</button>
           </div>
         </div>
       </div></div>`;
