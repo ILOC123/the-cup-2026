@@ -1337,29 +1337,9 @@ function renderStats(){
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">${dots}<span style="font-size:11px;color:var(--grey)">→ ${momTxt}</span></div>
   </div>`:'';
 
-  // 5. Knappste & deutlichste Siege
-  const decisive=finishedM.filter(m=>!results[m.id].isStabl&&results[m.id].rotPts!==results[m.id].blauPts&&!results[m.id].preset);
-  let extremeHtml='';
-  if(decisive.length){
-    const wm=decisive.map(m=>{
-      const x=results[m.id];const margin=Math.abs((x.rotUP||0)-(x.blauUP||0));
-      const wCol=x.rotPts>x.blauPts?'var(--rot-m)':'var(--blau-m)';const wLbl=x.rotPts>x.blauPts?'🔴 Rot':'🔵 Blau';
-      const pA=m.pA.map(p=>p.split(' ')[0]).join('/');const pB=m.pB.map(p=>p.split(' ')[0]).join('/');
-      return{margin,wCol,wLbl,pA,pB};
-    }).sort((a,b)=>a.margin-b.margin);
-    const cl=wm[0],bi=wm[wm.length-1];
-    extremeHtml=`<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)">
-      <div style="font-size:11px;color:var(--grey);margin-bottom:6px">⚔️ HIGHLIGHTS</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px">
-        <span style="color:var(--grey-l)">🤏 Knappste</span>
-        <span><span style="color:${cl.wCol};font-weight:700">${cl.wLbl}</span> <span style="color:var(--grey)">${cl.pA} vs ${cl.pB} · ${cl.margin}UP</span></span>
-      </div>
-      ${wm.length>1?`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:11px">
-        <span style="color:var(--grey-l)">💪 Deutlichste</span>
-        <span><span style="color:${bi.wCol};font-weight:700">${bi.wLbl}</span> <span style="color:var(--grey)">${bi.pA} vs ${bi.pB} · ${bi.margin}UP</span></span>
-      </div>`:''}
-    </div>`;
-  }
+  // 5. Highlights (knappste & deutlichste Siege) — wird direkt in der Card berechnet
+  const hasExtreme=finishedM.some(m=>!results[m.id].isStabl&&results[m.id].rotPts!==results[m.id].blauPts&&!results[m.id].preset);
+  const extremeHtml=hasExtreme?'placeholder':'';
 
   // 6. MVP
   const pt=getPTot();
@@ -1368,12 +1348,49 @@ function renderStats(){
     🌟 MVP: <strong style="color:${mvp.team==='rot'?'var(--rot-m)':'var(--blau-m)'}">${mvp.n}</strong> — <strong style="color:var(--gold)">${fmt(mvp.pts)} Pkt.</strong>
   </div>`:'';
 
-  return`<div style="background:var(--dark2);border-radius:14px;padding:14px 16px;margin-top:16px">
-    <div style="font-size:11px;color:var(--grey);margin-bottom:6px">🏆 TAGESSIEGER</div>
-    ${dayRows}
-    ${fmtRows?`<div style="font-size:11px;color:var(--grey);margin-top:12px;margin-bottom:4px">🎯 FORMAT-BILANZ</div>${fmtRows}`:''}
-    ${plRows?`<div style="font-size:11px;color:var(--grey);margin-top:12px;margin-bottom:4px">👤 SPIELER-BILANZ</div>${plRows}`:''}
-    ${formHtml}${extremeHtml}${mvpHtml}
+  const card=(icon,title,color,body)=>`
+    <div style="background:var(--dark2);border-radius:12px;border-left:3px solid ${color};padding:12px 14px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;color:${color};text-transform:uppercase;margin-bottom:8px">${icon} ${title}</div>
+      ${body}
+    </div>`;
+
+  const formCard=last5.length?card('📈','Formkurve',
+    '#3498db',
+    `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">${dots}</div>
+     <div style="font-size:11px;color:var(--grey)">Momentum → ${momTxt}</div>`
+  ):'';
+
+  const extremeCard=extremeHtml?card('⚔️','Highlights','#e67e22',(()=>{
+    const decisive2=finishedM.filter(m=>!results[m.id].isStabl&&results[m.id].rotPts!==results[m.id].blauPts&&!results[m.id].preset);
+    if(!decisive2.length)return'';
+    const wm2=decisive2.map(m=>{
+      const x=results[m.id];const margin=Math.abs((x.rotUP||0)-(x.blauUP||0));
+      const wCol=x.rotPts>x.blauPts?'var(--rot-m)':'var(--blau-m)';const wLbl=x.rotPts>x.blauPts?'🔴 Rot':'🔵 Blau';
+      const pA=m.pA.map(p=>p.split(' ')[0]).join('/');const pB=m.pB.map(p=>p.split(' ')[0]).join('/');
+      return{margin,wCol,wLbl,pA,pB};
+    }).sort((a,b)=>a.margin-b.margin);
+    const cl=wm2[0],bi=wm2[wm2.length-1];
+    return`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">
+      <span style="color:var(--grey-l)">🤏 Knappste</span>
+      <span><span style="color:${cl.wCol};font-weight:700">${cl.wLbl}</span> <span style="color:var(--grey)">${cl.pA} vs ${cl.pB} · ${cl.margin}UP</span></span>
+    </div>`+(wm2.length>1?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">
+      <span style="color:var(--grey-l)">💪 Deutlichste</span>
+      <span><span style="color:${bi.wCol};font-weight:700">${bi.wLbl}</span> <span style="color:var(--grey)">${bi.pA} vs ${bi.pB} · ${bi.margin}UP</span></span>
+    </div>`:'')}
+  ))():'';
+
+  const mvpCard=mvp?card('🌟','MVP','var(--gold)',
+    `<div style="font-size:14px;font-weight:700;color:${mvp.team==='rot'?'var(--rot-m)':'var(--blau-m)'}">
+      ${mvp.team==='rot'?'🔴':'🔵'} ${mvp.n}
+      <span style="color:var(--gold);font-size:13px;margin-left:8px">${fmt(mvp.pts)} Pkt.</span>
+    </div>`
+  ):'';
+
+  return`<div style="padding:4px 0">
+    ${card('🏆','Tagessieger','var(--gold)',dayRows)}
+    ${fmtRows?card('🎯','Format-Bilanz','#9b59b6',fmtRows):''}
+    ${plRows?card('👤','Spieler-Bilanz','#4caf50',plRows):''}
+    ${formCard}${extremeCard}${mvpCard}
   </div>`;
 }
 
