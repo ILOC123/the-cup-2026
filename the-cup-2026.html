@@ -1276,30 +1276,55 @@ function renderStats(){
   const days=[...new Set(MATCHES.map(m=>m.day))].sort((a,b)=>(DAY_ORDER.indexOf(a)<0?99:DAY_ORDER.indexOf(a))-(DAY_ORDER.indexOf(b)<0?99:DAY_ORDER.indexOf(b)));
   const finishedM=matchesWithRes.filter(m=>{const x=results[m.id];return x.rotPts+x.blauPts>0;});
 
-  // 1. Tagessieger
-  const dayRows=days.map(day=>{
+  // 1. Tagessieger — Mini-Scorecards
+  const dayCards=days.map(day=>{
     const dm=MATCHES.filter(m=>m.day===day);
     let dr=0,db=0;dm.forEach(m=>{const x=results[m.id];if(x){dr+=x.rotPts||0;db+=x.blauPts||0;}});
     if(!dr&&!db)return'';
-    const winner=dr>db?'<span style="color:var(--rot-m);font-weight:700">🔴 Rot</span>':db>dr?'<span style="color:var(--blau-m);font-weight:700">🔵 Blau</span>':'<span style="color:var(--gold);font-weight:700">Unentschieden</span>';
-    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px">
-      <span style="color:var(--grey-l)">${day}</span>
-      <span>${winner} <span style="color:var(--grey);font-size:11px">${fmt(dr)} : ${fmt(db)}</span></span>
+    const rotWin=dr>db,blauWin=db>dr,tie=dr===db;
+    const accentCol=rotWin?'rgba(192,57,43,0.18)':blauWin?'rgba(41,128,185,0.18)':'rgba(201,150,10,0.12)';
+    const badgeCol=rotWin?'var(--rot-m)':blauWin?'var(--blau-m)':'var(--gold)';
+    const badgeTxt=rotWin?'🔴 ROT':blauWin?'🔵 BLAU':'TIE';
+    const dayShort=day==='Donnerstag'?'DO':day==='Freitag'?'FR':day==='Samstag'?'SA':day.slice(0,2).toUpperCase();
+    const total=dr+db||1;
+    const rotPct=Math.round(dr/total*100);
+    return`<div style="background:${accentCol};border:1px solid ${badgeCol}33;border-radius:12px;padding:10px 12px;flex:1;min-width:0;text-align:center">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--grey);text-transform:uppercase;margin-bottom:6px">${dayShort}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:6px">
+        <span style="font-size:18px;font-weight:900;color:var(--rot-m)">${fmt(dr)}</span>
+        <span style="font-size:12px;color:var(--grey)">:</span>
+        <span style="font-size:18px;font-weight:900;color:var(--blau-m)">${fmt(db)}</span>
+      </div>
+      <div style="height:4px;border-radius:2px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:6px">
+        <div style="height:100%;width:${rotPct}%;background:var(--rot-m);border-radius:2px;transition:width 0.4s"></div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:${badgeCol};letter-spacing:0.5px">${badgeTxt}</div>
     </div>`;
-  }).filter(Boolean).join('');
-  if(!dayRows)return'';
+  }).filter(Boolean);
+  if(!dayCards.length)return'';
+  const dayRows=`<div style="display:flex;gap:8px">${dayCards.join('')}</div>`;
 
-  // 2. Format-Bilanz
+  // 2. Format-Bilanz mit Balken
   const fmtLbl={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',einzel:'Einzel',duebler:'Dübler Par3'};
   const fmtOrd=['bb','stabl','greensome','einzel','duebler'];
   const fmtTypes=[...new Set(finishedM.map(m=>m.type))].sort((a,b)=>(fmtOrd.indexOf(a)<0?99:fmtOrd.indexOf(a))-(fmtOrd.indexOf(b)<0?99:fmtOrd.indexOf(b)));
   const fmtRows=fmtTypes.map(type=>{
     const fm=finishedM.filter(m=>m.type===type);
     let rW=0,bW=0,ti=0;fm.forEach(m=>{const x=results[m.id];if(x.rotPts>x.blauPts)rW++;else if(x.blauPts>x.rotPts)bW++;else ti++;});
-    const dom=rW>bW?'<span style="color:var(--rot-m)">🔴</span>':bW>rW?'<span style="color:var(--blau-m)">🔵</span>':'<span style="color:var(--gold)">½</span>';
-    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px">
-      <span style="color:var(--grey-l)">${fmtLbl[type]||type}</span>
-      <span>${dom} <span style="color:var(--grey);font-size:11px">${rW} Siege – ${ti} TIE – ${bW} Siege</span></span>
+    const total=rW+bW+ti||1;
+    const rotPct=Math.round(rW/total*100);
+    const blauPct=Math.round(bW/total*100);
+    const tiePct=100-rotPct-blauPct;
+    return`<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:12px;color:var(--grey-l);font-weight:600">${fmtLbl[type]||type}</span>
+        <span style="font-size:11px;color:var(--grey)"><span style="color:var(--rot-m)">${rW}W</span> · ${ti} TIE · <span style="color:var(--blau-m)">${bW}W</span></span>
+      </div>
+      <div style="height:6px;border-radius:3px;background:rgba(255,255,255,0.07);overflow:hidden;display:flex">
+        <div style="width:${rotPct}%;background:var(--rot-m);transition:width 0.4s"></div>
+        <div style="width:${tiePct}%;background:var(--gold);opacity:0.6"></div>
+        <div style="width:${blauPct}%;background:var(--blau-m);margin-left:auto;transition:width 0.4s"></div>
+      </div>
     </div>`;
   }).join('');
 
