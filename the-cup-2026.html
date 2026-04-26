@@ -1322,7 +1322,7 @@ function renderStats(){
       const r=rec[p.n];const col=p.team==='rot'?'var(--rot-m)':'var(--blau-m)';const dot=p.team==='rot'?'🔴':'🔵';
       return`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px">
         <span style="color:${col}">${dot} ${p.n}</span>
-        <span><span style="color:#4caf50;font-weight:700">${r.w} Siege</span><span style="color:var(--grey)"> · ${r.h} Halbe · </span><span style="color:#e74c3c;font-weight:700">${r.l} Niederl.</span></span>
+        <span><span style="color:#4caf50;font-weight:700">${r.w} Siege</span><span style="color:var(--grey)"> · ${r.h} TIE ·</span><span style="color:#e74c3c;font-weight:700">${r.l} Niederl.</span></span>
       </div>`;
     }).join('');
 
