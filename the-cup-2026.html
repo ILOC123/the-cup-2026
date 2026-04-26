@@ -1233,10 +1233,21 @@ function renderLiveBoard(){
       </div>`;
     }).join('');
     return`<div style="margin-bottom:14px">
-      <div style="text-align:center;margin-bottom:10px">
-        <div style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase">${day==='Samstag'?'🏆 ':''}${day}</div>
-        <span id="lb-wx-${day}" style="font-size:12px;color:var(--grey)">⏳</span>
-      </div>
+      ${(()=>{
+        let dr=0,db=0;dm.forEach(m=>{const x=results[m.id];if(x){dr+=x.rotPts||0;db+=x.blauPts||0;}});
+        const wp=dr>db?'<span class="wp rot" style="font-size:10px">Rot</span>':db>dr?'<span class="wp blau" style="font-size:10px">Blau</span>':(dr||db)?'<span class="wp tie" style="font-size:10px">Gleich</span>':'';
+        const tt=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:null;
+        const ttParts=tt?[tt.t1,tt.t2].filter(Boolean):[];
+        const ttHtml=ttParts.length?`<span style="font-size:11px;color:var(--grey-l)">🕗 ${ttParts.join(' / ')} Uhr</span>`:'';
+        const scHtml=(dr||db)?`<span style="font-size:12px;font-weight:700"><span style="color:var(--rot-m)">${fmt(dr)}</span><span style="color:var(--grey)"> : </span><span style="color:var(--blau-m)">${fmt(db)}</span></span>`:'';
+        return`<div style="text-align:center;margin-bottom:10px">
+          <div style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase;margin-bottom:4px">${day==='Samstag'?'🏆 ':''}${day}</div>
+          <div style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap">
+            ${scHtml}${wp}${ttHtml}
+            <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)">⏳</span>
+          </div>
+        </div>`;
+      })()}
       ${groupsHtml}
     </div>`;
   }).join('');
@@ -1547,62 +1558,6 @@ function renderSB(){
   </div>
   <div class="stit" style="margin-top:8px">📋 LIVE BOARD</div>
   <div style="margin-bottom:4px">${renderLiveBoard()}</div>
-  <div class="stit">📅 TAGES-ÜBERSICHT</div>
-  ${days.map(day=>{
-    const dm=MATCHES.filter(m=>m.day===day);
-    let dr=0,db=0;
-    dm.forEach(m=>{const x=results[m.id];if(x){dr+=x.rotPts||0;db+=x.blauPts||0;}});
-    const wp=dr>db?'<span class="wp rot">Rot</span>':db>dr?'<span class="wp blau">Blau</span>':'<span class="wp tie">Gleich</span>';
-    const ic={Donnerstag:'🌤',Freitag:'☀️',Samstag:'🏆'}[day]||'📅';
-    const ck=dm[0]?.ckey||'OLD';const teeK=TEES[ck]||'Gelb';
-    const did='day-pairs-'+day.replace(/\s/g,'_');
-    // Paarungen gruppiert nach Format
-    const fmtName={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',duebler:'Dübler',einzel:'Einzel'};
-    const groups={};
-    dm.forEach(m=>{const k=m.type+'||'+m.ckey;if(!groups[k])groups[k]={type:m.type,ckey:m.ckey,matches:[]};groups[k].matches.push(m);});
-    const pairsHtml=Object.values(groups).map(g=>{
-      const c=COURSES[g.ckey]||{name:g.ckey};
-      const rows=g.matches.map(m=>{
-        const x=results[m.id];
-        let badge='';
-        if(x&&!x.preset&&x.holesPlayed>0){
-          if(x.rotPts>0||x.blauPts>0){const w=x.rotPts>x.blauPts?'🔴':'🔵';badge='<span style="font-size:11px;color:var(--green);margin-left:6px">✓ '+w+'</span>';}
-          else{const l=x.rotUP>x.blauUP?'🔴 '+(x.rotUP-x.blauUP)+'UP':x.blauUP>x.rotUP?'🔵 '+(x.blauUP-x.rotUP)+'UP':'TIE';badge='<span style="font-size:11px;color:var(--gold);margin-left:6px">'+l+'</span>';}
-        }
-        const tAc=m.tA==='rot'?'var(--rot-m)':'var(--blau-m)';
-        const tBc=m.tB==='rot'?'var(--rot-m)':'var(--blau-m)';
-        var tsSB=(m.type==='bb'||m.type==='greensome'||m.type==='einzel')?teamStrokes(m):null;
-        var vSBA='',vSBB='';
-        if(tsSB&&tsSB.diff>0){
-          var vSBBadge='<span style="background:rgba(255,255,255,0.08);border-radius:8px;font-size:10px;padding:1px 5px;font-weight:700;margin-left:3px;white-space:nowrap;color:'+(tsSB.weakerIsA?tAc:tBc)+'">+'+tsSB.diff+'</span>';
-          if(tsSB.weakerIsA)vSBA=vSBBadge; else vSBB=vSBBadge;
-        }
-        return '<div style="display:flex;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px">'
-          +'<span style="flex:1"><span style="color:'+tAc+';font-weight:600">🔴 '+m.pA.join(' & ')+'</span>'+vSBA
-          +' <span style="color:var(--grey)">vs</span> '
-          +'<span style="color:'+tBc+';font-weight:600">🔵 '+m.pB.join(' & ')+'</span>'+vSBB+'</span>'
-          +badge+'</div>';
-      }).join('');
-      return '<div style="margin-bottom:8px">'
-        +'<div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:4px">'
-        +(fmtName[g.type]||g.type)+' · '+c.name+'</div>'
-        +rows+'</div>';
-    }).join('');
-    return '<div class="fc">'
-      +'<div class="fch" data-did="'+did+'" onclick="toggleDayCard(this)" style="cursor:pointer">'
-      +'<div><div class="cn">'+ic+' '+day+'</div>'
-      +'<div style="display:flex;align-items:center;gap:8px"><span class="cs">'+dm.length+' Matches</span>'
-      +(()=>{const tt=EXTRAS.teetimes&&EXTRAS.teetimes[day];if(!tt||typeof tt!=='object')return'';const parts=[tt.t1,tt.t2].filter(Boolean);if(!parts.length)return'';return'<span style="font-size:11px;color:var(--grey-l)">Teetime: 🕗 '+parts.join(' / ')+' Uhr</span>';})()
-      +'<span id="wx-'+day+'" style="display:none"></span></div></div>'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<div class="fsc"><div class="fsn rot">'+fmt(dr)+'</div><div class="fss">:</div><div class="fsn blau">'+fmt(db)+'</div>'+wp+'</div>'
-      +'<span class="day-arr" style="color:var(--grey);font-size:14px;flex-shrink:0">▸</span>'
-      +'</div></div>'
-      +'<div id="'+did+'" style="display:none;padding:10px 14px 4px">'
-      +pairsHtml
-      +'</div>'
-      +'</div>';
-  }).join('')}
   ${ntpG?`<div class="stit" style="margin-top:8px">📍 NEAREST TO THE PIN</div><div class="ntp-sb"><div class="ntp-sb-hdr"><span style="font-size:16px">🎯</span><span style="font-size:12px;font-weight:700;color:var(--gold)">NTP · je ${fmt(EXTRAS.ntp.pts)} Pkt.</span></div>${ntpRows}</div>`:''}
   <div class="stit" style="margin-top:16px">📊 TURNIER-STATISTIK</div>
   ${renderStats()}
