@@ -3611,9 +3611,29 @@ function showConfirm(title,msg,onOk){
   el.onclick=function(e){if(e.target===el)el.remove();};
 }
 
+function showInstallHint(){
+  if(localStorage.getItem('c26ih'))return;
+  const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)&&!window.navigator.standalone;
+  const isAndroid=/Android/.test(navigator.userAgent);
+  if(!isIOS&&!isAndroid)return;
+  const msg=isIOS
+    ?'Tippe auf <strong>Teilen ↑</strong> und dann <strong>„Zum Home‑Bildschirm"</strong> um die App als Icon zu speichern.'
+    :'Tippe auf das <strong>Menü ⋮</strong> in Chrome und dann <strong>„Zum Startbildschirm"</strong> um die App als Icon zu speichern.';
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:380px;background:#1e1e1e;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:16px;z-index:9998;box-shadow:0 4px 24px rgba(0,0,0,0.5)';
+  el.innerHTML='<div style="display:flex;align-items:flex-start;gap:12px">'
+    +'<div style="font-size:28px;line-height:1">📲</div>'
+    +'<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">App zum Homescreen hinzufügen</div>'
+    +'<div style="font-size:12px;color:#999;line-height:1.5">'+msg+'</div></div>'
+    +'<button onclick="this.closest(\'div[style]\').remove();localStorage.setItem(\'c26ih\',\'1\')" style="background:none;border:none;color:#666;font-size:20px;cursor:pointer;padding:0;line-height:1;flex-shrink:0">✕</button>'
+    +'</div>';
+  document.body.appendChild(el);
+}
+
 // INIT
 loadData();
 buildSplash();
+setTimeout(showInstallHint,1500);
 </script>
 </body>
 </html>
