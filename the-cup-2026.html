@@ -1174,6 +1174,72 @@ function getNtpPts(){
   return p;
 }
 
+function renderLiveBoard(){
+  const fmtShort={bb:'BB',stabl:'SB',greensome:'GS',duebler:'P3',einzel:'EZ'};
+  const DAY_ORDER=['Donnerstag','Freitag','Samstag'];
+  const days=[...new Set(MATCHES.map(m=>m.day))].sort((a,b)=>(DAY_ORDER.indexOf(a)<0?99:DAY_ORDER.indexOf(a))-(DAY_ORDER.indexOf(b)<0?99:DAY_ORDER.indexOf(b)));
+  const dayIcon={Donnerstag:'🌤',Freitag:'☀️',Samstag:'🏆'};
+  return days.map(day=>{
+    const dm=MATCHES.filter(m=>m.day===day);if(!dm.length)return'';
+    const cards=dm.map(m=>{
+      const x=results[m.id];
+      let statusHtml='<span style="color:var(--grey);font-size:11px">—</span>';
+      if(x){
+        const finished=x.preset||(x.rotPts===1||x.blauPts===1||x.rotPts===0.5);
+        if(finished){
+          if(x.rotPts>x.blauPts)statusHtml='<span style="color:var(--rot-m);font-weight:700;font-size:12px">🔴 WIN</span>';
+          else if(x.blauPts>x.rotPts)statusHtml='<span style="color:var(--blau-m);font-weight:700;font-size:12px">🔵 WIN</span>';
+          else statusHtml='<span style="color:var(--gold);font-weight:700;font-size:12px">½ ½</span>';
+        }else if(x.holesPlayed>0){
+          const diff=x.rotUP-x.blauUP;
+          if(diff>0)statusHtml='<span style="color:var(--rot-m);font-weight:700;font-size:12px">🔴 '+(x.isStabl?x.rotUP+'P':diff+'UP')+'</span>';
+          else if(diff<0)statusHtml='<span style="color:var(--blau-m);font-weight:700;font-size:12px">🔵 '+(x.isStabl?x.blauUP+'P':Math.abs(diff)+'UP')+'</span>';
+          else statusHtml='<span style="color:var(--grey-l);font-weight:700;font-size:12px">A/S</span>';
+        }
+      }
+      const pA=m.pA.map(p=>p.split(' ')[0]).join('/');
+      const pB=m.pB.map(p=>p.split(' ')[0]).join('/');
+      return`<div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px">
+        <div style="font-size:9px;color:var(--gold);letter-spacing:1px;font-weight:700;margin-bottom:5px">${fmtShort[m.type]||m.type}</div>
+        <div style="font-size:11px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔴 ${pA}</div>
+        <div style="font-size:11px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">🔵 ${pB}</div>
+        <div style="text-align:center">${statusHtml}</div>
+      </div>`;
+    }).join('');
+    return`<div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--grey-l);margin-bottom:8px;text-transform:uppercase">${dayIcon[day]||'📅'} ${day}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:8px">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderStats(){
+  const matchesWithRes=MATCHES.filter(m=>results[m.id]&&(results[m.id].holesPlayed>0||results[m.id].preset));
+  if(!matchesWithRes.length)return'';
+  const DAY_ORDER=['Donnerstag','Freitag','Samstag'];
+  const days=[...new Set(MATCHES.map(m=>m.day))].sort((a,b)=>(DAY_ORDER.indexOf(a)<0?99:DAY_ORDER.indexOf(a))-(DAY_ORDER.indexOf(b)<0?99:DAY_ORDER.indexOf(b)));
+  const dayRows=days.map(day=>{
+    const dm=MATCHES.filter(m=>m.day===day);
+    let dr=0,db=0;dm.forEach(m=>{const x=results[m.id];if(x){dr+=x.rotPts||0;db+=x.blauPts||0;}});
+    if(!dr&&!db)return'';
+    const winner=dr>db?'<span style="color:var(--rot-m);font-weight:700">🔴 Rot</span>':db>dr?'<span style="color:var(--blau-m);font-weight:700">🔵 Blau</span>':'<span style="color:var(--gold);font-weight:700">Unentschieden</span>';
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px">
+      <span style="color:var(--grey-l)">${day}</span>
+      <span>${winner} <span style="color:var(--grey);font-size:11px">${fmt(dr)} : ${fmt(db)}</span></span>
+    </div>`;
+  }).filter(Boolean).join('');
+  if(!dayRows)return'';
+  const pt=getPTot();
+  const allPl=[...(PL.rot||[]).map(p=>({...p,team:'rot'})),...(PL.blau||[]).map(p=>({...p,team:'blau'}))];
+  const mvp=allPl.map(p=>({...p,pts:pt[p.n]||0})).filter(p=>p.pts>0).sort((a,b)=>b.pts-a.pts)[0];
+  const mvpHtml=mvp?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:12px">
+    🌟 MVP: <strong style="color:${mvp.team==='rot'?'var(--rot-m)':'var(--blau-m)'}">${mvp.n}</strong> — <strong style="color:var(--gold)">${fmt(mvp.pts)} Pkt.</strong>
+  </div>`:'';
+  return`<div style="background:var(--dark2);border-radius:14px;padding:14px 16px;margin-top:16px">
+    ${dayRows}${mvpHtml}
+  </div>`;
+}
+
 function recalcM(m){
   const s=scores[m.id];if(!s)return;
   const c=cd(m);const hi=getHoleIdx(m);
@@ -1450,6 +1516,8 @@ function renderSB(){
     </div>
     ${buildScoreBar(r,b,tot)}
   </div>
+  <div class="stit" style="margin-top:8px">📋 LIVE BOARD</div>
+  <div style="margin-bottom:4px">${renderLiveBoard()}</div>
   <div class="stit">📅 TAGES-ÜBERSICHT</div>
   ${days.map(day=>{
     const dm=MATCHES.filter(m=>m.day===day);
@@ -1507,7 +1575,9 @@ function renderSB(){
       +'</div>';
   }).join('')}
   ${ntpG?`<div class="stit" style="margin-top:8px">📍 NEAREST TO THE PIN</div><div class="ntp-sb"><div class="ntp-sb-hdr"><span style="font-size:16px">🎯</span><span style="font-size:12px;font-weight:700;color:var(--gold)">NTP · je ${fmt(EXTRAS.ntp.pts)} Pkt.</span></div>${ntpRows}</div>`:''}
-  <div class="stit" style="margin-top:8px">🏅 RANGLISTE</div>
+  <div class="stit" style="margin-top:16px">📊 TURNIER-STATISTIK</div>
+  ${renderStats()}
+  <div class="stit" style="margin-top:16px">🏅 RANGLISTE</div>
   ${sorted.map(function(p,i){
     var isGold=i===0,isSilver=i===1,isBronze=i===2;
     var rowCls=isGold?'gold-row':isSilver?'silver-row':isBronze?'bronze-row':'';
