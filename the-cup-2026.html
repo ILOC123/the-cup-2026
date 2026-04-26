@@ -1011,8 +1011,9 @@ async function updateWxInSB(){
     var symbol=(d.next_1_hours&&d.next_1_hours.summary&&d.next_1_hours.summary.symbol_code)
       ||(d.next_6_hours&&d.next_6_hours.summary&&d.next_6_hours.summary.symbol_code);
     var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
-    el.textContent='Wetter: '+wxEmoji(symbol)+(temp!==undefined?' '+Math.round(temp)+'°C':'')+(wind!==undefined?' · Wind: 💨'+Math.round(wind)+'m/s':'');
-    el.style.color='var(--grey-l)';
+    var wxText=wxEmoji(symbol)+(temp!==undefined?' '+Math.round(temp)+'°C':'')+(wind!==undefined?' · 💨'+Math.round(wind)+'m/s':'');
+    el.textContent='Wetter: '+wxText;el.style.color='var(--grey-l)';
+    var lb=document.getElementById('lb-wx-'+day);if(lb){lb.textContent=wxText;lb.style.color='var(--grey-l)';}
   });
 }
 
@@ -1213,11 +1214,14 @@ function renderLiveBoard(){
       const gm=dm.filter(m=>m.type===type);
       return`<div style="margin-bottom:10px">
         <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase">${fmtLabel[type]||type}</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">${gm.map(mkCard).join('')}</div>
+        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px">${gm.map(mkCard).join('')}</div>
       </div>`;
     }).join('');
     return`<div style="margin-bottom:14px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--grey-l);margin-bottom:8px;text-transform:uppercase">${dayIcon[day]||'📅'} ${day}</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase">${dayIcon[day]||'📅'} ${day}</div>
+        <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)">⏳</span>
+      </div>
       ${groupsHtml}
     </div>`;
   }).join('');
