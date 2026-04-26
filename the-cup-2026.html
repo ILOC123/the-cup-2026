@@ -967,8 +967,6 @@ function wxEmoji(s){
   return'🌡️';
 }
 function wxDayDate(dayName){
-  const stored=EXTRAS.teetimes&&typeof EXTRAS.teetimes[dayName]==='object'&&EXTRAS.teetimes[dayName].date;
-  if(stored){const d=new Date(stored+'T12:00:00');return isNaN(d)?null:d;}
   const map={Donnerstag:4,Freitag:5,Samstag:6};
   const target=map[dayName];if(target===undefined)return null;
   const d=new Date();let diff=target-d.getDay();if(diff<0)diff+=7;
@@ -1029,10 +1027,7 @@ function loadData(){
   if(!EXTRAS.einzel)EXTRAS.einzel=[];
   if(!EXTRAS.jahr)EXTRAS.jahr='2026';
   if(!EXTRAS.teetimes)EXTRAS.teetimes={};
-  DAYS.forEach(d=>{
-    if(typeof EXTRAS.teetimes[d]==='string'){EXTRAS.teetimes[d]={t1:EXTRAS.teetimes[d],t2:'',date:''};}
-    else if(typeof EXTRAS.teetimes[d]==='object'&&EXTRAS.teetimes[d]!==null&&!EXTRAS.teetimes[d].date){EXTRAS.teetimes[d].date='';}
-  });
+  DAYS.forEach(d=>{if(typeof EXTRAS.teetimes[d]==='string'){EXTRAS.teetimes[d]={t1:EXTRAS.teetimes[d],t2:''}}});
   const st=localStorage.getItem('c26t');TEES=st?JSON.parse(st):JSON.parse(JSON.stringify(DEF_TEES));
   try{scores=JSON.parse(localStorage.getItem('c26s')||'{}');}catch(e){scores={};}
   try{results=JSON.parse(localStorage.getItem('c26r')||'{}');}catch(e){results={};}
@@ -2037,10 +2032,10 @@ function bRes(){
 
 function savTeetime(day,slot,val){
   if(!EXTRAS.teetimes)EXTRAS.teetimes={};
-  if(typeof EXTRAS.teetimes[day]!=='object'||EXTRAS.teetimes[day]===null)EXTRAS.teetimes[day]={t1:'',t2:'',date:''};
+  if(typeof EXTRAS.teetimes[day]!=='object'||EXTRAS.teetimes[day]===null)EXTRAS.teetimes[day]={t1:'',t2:''};
   EXTRAS.teetimes[day][slot]=val;
   saveData();renderSB();
-  showToast(slot==='date'?'📅 Datum gespeichert: '+val:'🕗 Teetime gespeichert: '+val+' Uhr');
+  showToast('🕗 Teetime gespeichert: '+val+' Uhr');
 }
 
 function saveJahr(){
@@ -2078,25 +2073,22 @@ function bSettings(){
   <div class="ac"><h3>Infos per Tag</h3>${DAYS.map(day=>{
     const dm=MATCHES.filter(m=>m.day===day);if(!dm.length)return'';
     const ck=dm[0].ckey;const tK=TEES[ck]||'Gelb';const tD=COURSES[ck].tees[tK]||Object.values(COURSES[ck].tees)[0];
-    const ttObj=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:{t1:'',t2:'',date:''};
-    return`<div class="trow" style="flex-wrap:wrap;gap:8px"><div><div class="trow-lbl">${day}</div><div class="trow-sub">${COURSES[ck].name} · <span class="tee-pill t${tK}">${tK}</span> · ${dm.length} Matches</div></div>
-      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
-        <div style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:11px;color:var(--grey-l)">📅</span>
-          <input type="date" class="ain" style="width:130px;font-size:13px;padding:4px 6px" value="${ttObj.date||''}"
-            data-day="${day}" data-slot="date" onchange="savTeetime(this.dataset.day,this.dataset.slot,this.value)">
-        </div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:11px;color:var(--grey-l)">🕗 R1</span>
-          <input type="time" class="ain" style="width:90px;font-size:13px;padding:4px 6px" value="${ttObj.t1||''}"
-            data-day="${day}" data-slot="t1" onchange="savTeetime(this.dataset.day,this.dataset.slot,this.value)">
-        </div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:11px;color:var(--grey-l)">🕗 R2</span>
-          <input type="time" class="ain" style="width:90px;font-size:13px;padding:4px 6px" value="${ttObj.t2||''}"
-            data-day="${day}" data-slot="t2" onchange="savTeetime(this.dataset.day,this.dataset.slot,this.value)">
-        </div>
+    const ttObj=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:{t1:'',t2:''};
+    return`<div class="trow"><div><div class="trow-lbl">${day}</div><div class="trow-sub">${COURSES[ck].name} · <span class="tee-pill t${tK}">${tK}</span> · ${dm.length} Matches</div></div>
+      <div style="display:flex;align-items:center;gap:6px">
         <div style="font-size:11px;color:var(--grey)">CR ${tD.cr} / SR ${tD.sr}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="display:flex;align-items:center;gap:4px">
+            <span style="font-size:11px;color:var(--grey-l)">🕗 R1</span>
+            <input type="time" class="ain" style="width:90px;font-size:13px;padding:4px 6px" value="${ttObj.t1||''}"
+              data-day="${day}" data-slot="t1" onchange="savTeetime(this.dataset.day,this.dataset.slot,this.value)">
+          </div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <span style="font-size:11px;color:var(--grey-l)">🕗 R2</span>
+            <input type="time" class="ain" style="width:90px;font-size:13px;padding:4px 6px" value="${ttObj.t2||''}"
+              data-day="${day}" data-slot="t2" onchange="savTeetime(this.dataset.day,this.dataset.slot,this.value)">
+          </div>
+        </div>
       </div></div>`;
   }).join('')}
   <div style="font-size:11px;color:var(--grey);margin-top:8px">Platz pro Match ändern → Tab 🎯 Spielplan</div></div>`;
