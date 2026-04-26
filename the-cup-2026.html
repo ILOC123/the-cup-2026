@@ -1341,26 +1341,29 @@ function renderStats(){
       else rec[pn].h++;
     });
   });
-  const plRows=allPl.filter(p=>rec[p.n].w||rec[p.n].l||rec[p.n].h)
-    .sort((a,b)=>b.w-a.w||a.l-b.l)
-    .map(p=>{
-      const r=rec[p.n];const col=p.team==='rot'?'var(--rot-m)':'var(--blau-m)';const dot=p.team==='rot'?'🔴':'🔵';
-      const total=r.w+r.h+r.l||1;
-      const wPct=Math.round(r.w/total*100);
-      const hPct=Math.round(r.h/total*100);
-      const lPct=100-wPct-hPct;
-      return`<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:12px">
-          <span style="color:${col};font-weight:600">${dot} ${p.n}</span>
-          <span><span style="color:#4caf50;font-weight:700">${r.w}W</span><span style="color:var(--grey)"> · ${r.h} TIE · </span><span style="color:#e74c3c;font-weight:700">${r.l}L</span></span>
-        </div>
-        <div style="height:5px;border-radius:3px;background:rgba(255,255,255,0.07);overflow:hidden;display:flex">
-          <div style="width:${wPct}%;background:#4caf50"></div>
-          <div style="width:${hPct}%;background:var(--gold);opacity:0.7"></div>
-          <div style="width:${lPct}%;background:#e74c3c;margin-left:auto"></div>
-        </div>
-      </div>`;
-    }).join('');
+  const plSorted=allPl.filter(p=>rec[p.n].w||rec[p.n].l||rec[p.n].h).sort((a,b)=>{
+    const ra=rec[a.n],rb=rec[b.n];
+    const ta=ra.w+ra.h+ra.l||1,tb=rb.w+rb.h+rb.l||1;
+    return rb.w/tb-ra.w/ta||ra.l-rb.l;
+  });
+  const maxW=Math.max(...plSorted.map(p=>rec[p.n].w),1);
+  const plRows=plSorted.map((p,i)=>{
+    const r=rec[p.n];const col=p.team==='rot'?'var(--rot-m)':'var(--blau-m)';
+    const dot=p.team==='rot'?'🔴':'🔵';
+    const total=r.w+r.h+r.l||1;
+    const winPct=Math.round(r.w/total*100);
+    const barW=Math.round(r.w/maxW*100);
+    const rank=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+    return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+      <span style="font-size:12px;min-width:22px;text-align:center">${rank}</span>
+      <span style="font-size:12px;color:${col};font-weight:600;min-width:60px;white-space:nowrap">${dot} ${p.n}</span>
+      <div style="flex:1;height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${barW}%;background:${col};border-radius:4px;transition:width 0.4s"></div>
+      </div>
+      <span style="font-size:11px;color:var(--grey-l);min-width:28px;text-align:right">${winPct}%</span>
+      <span style="font-size:10px;color:var(--grey);min-width:52px;text-align:right">${r.w}W·${r.h}T·${r.l}L</span>
+    </div>`;
+  }).join('');
 
   // 4. Formkurve (letzte 5 Matches)
   const chronoF=finishedM.slice().sort((a,b)=>{const d=DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day);return d||MATCHES.indexOf(a)-MATCHES.indexOf(b);});
