@@ -1200,9 +1200,24 @@ function renderLiveBoard(){
       }
       const pA=m.pA.map(p=>p.split(' ')[0]).join('/');
       const pB=m.pB.map(p=>p.split(' ')[0]).join('/');
+      // Extraschläge
+      let extraA='',extraB='';
+      if(m.type==='bb'||m.type==='greensome'||m.type==='einzel'){
+        const ts=teamStrokes(m);
+        if(ts.diff>0){
+          const col=ts.weakerIsA?'var(--rot-m)':'var(--blau-m)';
+          const badge=`<span style="font-size:9px;color:${col};font-weight:700;background:rgba(255,255,255,0.08);border-radius:6px;padding:1px 4px">+${ts.diff}</span>`;
+          if(ts.weakerIsA)extraA=' '+badge; else extraB=' '+badge;
+        }
+      } else if(m.type==='stabl'){
+        const chA=m.pA.map(p=>courseHcp(getHcp(p),m.ckey)).join('/');
+        const chB=m.pB.map(p=>courseHcp(getHcp(p),m.ckey)).join('/');
+        extraA=` <span style="font-size:9px;color:var(--grey)">HCP ${chA}</span>`;
+        extraB=` <span style="font-size:9px;color:var(--grey)">HCP ${chB}</span>`;
+      }
       return`<div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px;text-align:center">
-        <div style="font-size:11px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔴 ${pA}</div>
-        <div style="font-size:11px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">🔵 ${pB}</div>
+        <div style="font-size:11px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔴 ${pA}${extraA}</div>
+        <div style="font-size:11px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">🔵 ${pB}${extraB}</div>
         <div>${statusHtml}</div>
       </div>`;
     };
@@ -1219,7 +1234,7 @@ function renderLiveBoard(){
     }).join('');
     return`<div style="margin-bottom:14px">
       <div style="text-align:center;margin-bottom:10px">
-        <div style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase">${day}</div>
+        <div style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase">${day==='Samstag'?'🏆 ':''}${day}</div>
         <span id="lb-wx-${day}" style="font-size:12px;color:var(--grey)">⏳</span>
       </div>
       ${groupsHtml}
