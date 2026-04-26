@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D1117"/>
+      <stop offset="55%" stop-color="#1A3A5C"/>
+      <stop offset="100%" stop-color="#C0392B"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="90" fill="url(#bg)"/>
+  <text x="256" y="210" font-family="Arial Black,Arial" font-weight="900" font-size="130" fill="#ffffff" text-anchor="middle" letter-spacing="6">THE</text>
+  <text x="256" y="345" font-family="Arial Black,Arial" font-weight="900" font-size="150" fill="#C9960A" text-anchor="middle" letter-spacing="6">CUP</text>
+  <text x="256" y="420" font-family="Arial,sans-serif" font-size="56" fill="#888888" text-anchor="middle" letter-spacing="14">2026</text>
+</svg>
