@@ -1299,7 +1299,7 @@ function renderStats(){
     const dom=rW>bW?'<span style="color:var(--rot-m)">🔴</span>':bW>rW?'<span style="color:var(--blau-m)">🔵</span>':'<span style="color:var(--gold)">½</span>';
     return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px">
       <span style="color:var(--grey-l)">${fmtLbl[type]||type}</span>
-      <span>${dom} <span style="color:var(--grey);font-size:11px">${rW}W–${ti}H–${bW}W</span></span>
+      <span>${dom} <span style="color:var(--grey);font-size:11px">${rW} Siege – ${ti} TIE – ${bW} Siege</span></span>
     </div>`;
   }).join('');
 
