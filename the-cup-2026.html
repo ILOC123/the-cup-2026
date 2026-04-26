@@ -1341,6 +1341,9 @@ function renderStats(){
       else rec[pn].h++;
     });
   });
+  // Chronologisch sortierte abgeschlossene Matches (wird von Spieler- & Turnierverlauf genutzt)
+  const chronoF=finishedM.slice().sort((a,b)=>{const d=DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day);return d||MATCHES.indexOf(a)-MATCHES.indexOf(b);});
+
   // Spieler-Verlaufskurve: kumulierte Punkte pro Spieler über alle Matches
   const rotCols=['#ff6b6b','#ee5a24','#ffd32a','#ff9f43','#f8a5c2','#c0392b'];
   const blauCols=['#48dbfb','#0abde3','#54a0ff','#00d2d3','#a29bfe','#2471a3'];
@@ -1384,9 +1387,7 @@ function renderStats(){
   };
   const plRows=buildPlChart('rot',rotCols)+buildPlChart('blau',blauCols);
 
-  // 4. Formkurve (letzte 5 Matches)
-  const chronoF=finishedM.slice().sort((a,b)=>{const d=DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day);return d||MATCHES.indexOf(a)-MATCHES.indexOf(b);});
-  // Verlaufskurve: kumulativer Punktestand über alle Matches
+  // 4. Turnierverlauf: kumulativer Punktestand über alle Matches
   const W=320,H=90,PX=12,PY=10;
   let cR=0,cB=0;
   const pts=[{r:0,b:0}];
