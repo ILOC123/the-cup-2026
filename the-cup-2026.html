@@ -1213,12 +1213,12 @@ function renderLiveBoard(){
     const groupsHtml=groups.map(type=>{
       const gm=dm.filter(m=>m.type===type);
       return`<div style="margin-bottom:10px">
-        <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase">${fmtLabel[type]||type}</div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}</div>
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px">${gm.map(mkCard).join('')}</div>
       </div>`;
     }).join('');
     return`<div style="margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+      <div style="text-align:center;margin-bottom:8px">
         <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase">${dayIcon[day]||'📅'} ${day}</div>
         <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)">⏳</span>
       </div>
