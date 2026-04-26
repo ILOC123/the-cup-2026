@@ -1382,12 +1382,6 @@ function renderStats(){
       <span><span style="color:#3498db">●</span> Blau <strong style="color:#3498db">${fmt(cB)}</strong></span>
       <span style="margin-left:auto">${cR>cB?'<span style="color:var(--rot-m);font-weight:700">🔴 Rot führt</span>':cB>cR?'<span style="color:var(--blau-m);font-weight:700">🔵 Blau führt</span>':'<span style="color:var(--gold);font-weight:700">Gleichstand</span>'}</span>
     </div>`:'';
-  const momTxt=cR>cB?'<span style="color:var(--rot-m);font-weight:700">🔴 Rot</span>':cB>cR?'<span style="color:var(--blau-m);font-weight:700">🔵 Blau</span>':'<span style="color:var(--gold);font-weight:700">Ausgeglichen</span>';
-  const formHtml=last5.length?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)">
-    <div style="font-size:11px;color:var(--grey);margin-bottom:6px">📈 FORMKURVE (letzte ${last5.length})</div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">${dots}<span style="font-size:11px;color:var(--grey)">→ ${momTxt}</span></div>
-  </div>`:'';
-
   // 5. Highlights (knappste & deutlichste Siege) — wird direkt in der Card berechnet
   const hasExtreme=finishedM.some(m=>!results[m.id].isStabl&&results[m.id].rotPts!==results[m.id].blauPts&&!results[m.id].preset);
   const extremeHtml=hasExtreme?'placeholder':'';
