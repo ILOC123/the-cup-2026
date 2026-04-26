@@ -1225,10 +1225,13 @@ function renderLiveBoard(){
     const fmtOrder=['bb','stabl','greensome','einzel','duebler'];
     const fmtLabel={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',einzel:'Einzel',duebler:'Dübler Par3'};
     const groups=[...new Set(dm.map(m=>m.type))].sort((a,b)=>(fmtOrder.indexOf(a)<0?99:fmtOrder.indexOf(a))-(fmtOrder.indexOf(b)<0?99:fmtOrder.indexOf(b)));
-    const groupsHtml=groups.map(type=>{
+    const tt=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:null;
+    const ttSlots=[tt&&tt.t1?`🕗 ${tt.t1} Uhr`:'',tt&&tt.t2?`🕗 ${tt.t2} Uhr`:''];
+    const groupsHtml=groups.map((type,gi)=>{
       const gm=dm.filter(m=>m.type===type);
+      const ttTag=ttSlots[gi]?`<span style="font-size:11px;color:var(--grey-l);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px">${ttSlots[gi]}</span>`:'';
       return`<div style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}</div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}${ttTag}</div>
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px">${gm.map(mkCard).join('')}</div>
       </div>`;
     }).join('');
@@ -1236,14 +1239,11 @@ function renderLiveBoard(){
       ${(()=>{
         let dr=0,db=0;dm.forEach(m=>{const x=results[m.id];if(x){dr+=x.rotPts||0;db+=x.blauPts||0;}});
         const wp=dr>db?'<span class="wp rot" style="font-size:10px">Rot</span>':db>dr?'<span class="wp blau" style="font-size:10px">Blau</span>':(dr||db)?'<span class="wp tie" style="font-size:10px">Gleich</span>':'';
-        const tt=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:null;
-        const ttParts=tt?[tt.t1,tt.t2].filter(Boolean):[];
-        const ttHtml=ttParts.length?`<span style="font-size:11px;color:var(--grey-l)">🕗 ${ttParts.join(' / ')} Uhr</span>`:'';
         const scHtml=(dr||db)?`<span style="font-size:12px;font-weight:700"><span style="color:var(--rot-m)">${fmt(dr)}</span><span style="color:var(--grey)"> : </span><span style="color:var(--blau-m)">${fmt(db)}</span></span>`:'';
         return`<div style="text-align:center;margin-bottom:10px">
           <div style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase;margin-bottom:4px">${day==='Samstag'?'🏆 ':''}${day}</div>
           <div style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap">
-            ${scHtml}${wp}${ttHtml}
+            ${scHtml}${wp}
             <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)">⏳</span>
           </div>
         </div>`;
