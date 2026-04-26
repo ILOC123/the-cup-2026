@@ -1351,9 +1351,9 @@ function renderStats(){
   const buildPlChart=(team,cols)=>{
     const tPl=allPl.filter(p=>p.team===team&&(rec[p.n].w||rec[p.n].l||rec[p.n].h));
     if(!tPl.length)return'';
-    const PW=300,PH=110,PPX=62,PPY=10;
+    const PW=300,PH=100,PPX=10,PPY=10;
     const nM=chronoF.length;
-    const xp=i=>PPX+(nM>0?i/nM:0)*(PW-PPX-8);
+    const xp=i=>PPX+(nM>0?i/nM:0)*(PW-PPX-55);
     const plData=tPl.map((p,pi)=>{
       let cum=0;const cpts=[0];
       chronoF.forEach(m=>{
@@ -1368,16 +1368,12 @@ function renderStats(){
     });
     const maxC=Math.max(...plData.map(pd=>Math.max(...pd.pts)),1);
     const yp=v=>PH-PPY-(v/maxC)*(PH-2*PPY);
-    const nameStep=(PH-2*PPY)/Math.max(tPl.length-1,1);
     const lines=plData.map((pd,pi)=>{
       const path=pd.pts.map((v,i)=>(i===0?'M':'L')+xp(i).toFixed(1)+','+yp(v).toFixed(1)).join(' ');
-      const ny=(PPY+pi*nameStep).toFixed(1);
-      const startY=yp(0).toFixed(1);
-      return`<text x="${(PPX-6).toFixed(1)}" y="${ny}" fill="${pd.col}" font-size="9" font-weight="700" text-anchor="end" dominant-baseline="middle">${pd.name}</text>
-      <line x1="${(PPX-5).toFixed(1)}" y1="${ny}" x2="${PPX}" y2="${startY}" stroke="${pd.col}" stroke-width="0.6" stroke-dasharray="2,2" opacity="0.45"/>
-      <path d="${path}" fill="none" stroke="${pd.col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="${xp(nM).toFixed(1)}" cy="${yp(pd.pts[nM]).toFixed(1)}" r="3" fill="${pd.col}"/>
-      <text x="${(xp(nM)+4).toFixed(1)}" y="${(yp(pd.pts[nM])+4).toFixed(1)}" fill="${pd.col}" font-size="9" font-weight="700">${pd.final}</text>`;
+      const ex=xp(nM).toFixed(1);const ey=yp(pd.pts[nM]).toFixed(1);
+      return`<path d="${path}" fill="none" stroke="${pd.col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${ex}" cy="${ey}" r="3" fill="${pd.col}"/>
+      <text x="${(xp(nM)+6).toFixed(1)}" y="${ey}" fill="${pd.col}" font-size="9" font-weight="700" dominant-baseline="middle">${pd.name}</text>`;
     }).join('');
     const titleCol=team==='rot'?'var(--rot-m)':'var(--blau-m)';
     const titleLbl=team==='rot'?'🔴 Team Rot':'🔵 Team Blau';
