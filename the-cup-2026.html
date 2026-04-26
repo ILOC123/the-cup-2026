@@ -1213,14 +1213,14 @@ function renderLiveBoard(){
     const groupsHtml=groups.map(type=>{
       const gm=dm.filter(m=>m.type===type);
       return`<div style="margin-bottom:10px">
-        <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}</div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}</div>
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px">${gm.map(mkCard).join('')}</div>
       </div>`;
     }).join('');
     return`<div style="margin-bottom:14px">
-      <div style="text-align:center;margin-bottom:8px">
-        <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase">${dayIcon[day]||'📅'} ${day}</div>
-        <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)">⏳</span>
+      <div style="text-align:center;margin-bottom:10px">
+        <div style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase">${dayIcon[day]||'📅'} ${day}</div>
+        <span id="lb-wx-${day}" style="font-size:12px;color:var(--grey)">⏳</span>
       </div>
       ${groupsHtml}
     </div>`;
@@ -1578,7 +1578,7 @@ function renderSB(){
       +'<div><div class="cn">'+ic+' '+day+'</div>'
       +'<div style="display:flex;align-items:center;gap:8px"><span class="cs">'+dm.length+' Matches</span>'
       +(()=>{const tt=EXTRAS.teetimes&&EXTRAS.teetimes[day];if(!tt||typeof tt!=='object')return'';const parts=[tt.t1,tt.t2].filter(Boolean);if(!parts.length)return'';return'<span style="font-size:11px;color:var(--grey-l)">Teetime: 🕗 '+parts.join(' / ')+' Uhr</span>';})()
-      +'<span id="wx-'+day+'" style="font-size:11px;color:var(--grey)">Wetter: ⏳</span></div></div>'
+      +'<span id="wx-'+day+'" style="display:none"></span></div></div>'
       +'<div style="display:flex;align-items:center;gap:8px">'
       +'<div class="fsc"><div class="fsn rot">'+fmt(dr)+'</div><div class="fss">:</div><div class="fsn blau">'+fmt(db)+'</div>'+wp+'</div>'
       +'<span class="day-arr" style="color:var(--grey);font-size:14px;flex-shrink:0">▸</span>'
