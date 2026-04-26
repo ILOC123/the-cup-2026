@@ -1351,9 +1351,10 @@ function renderStats(){
   const buildPlChart=(team,cols)=>{
     const tPl=allPl.filter(p=>p.team===team&&(rec[p.n].w||rec[p.n].l||rec[p.n].h));
     if(!tPl.length)return'';
-    const PW=300,PH=100,PPX=10,PPY=10;
+    const PW=300,PH=120,PPX=10,PPY=12,LPAD=52;
+    const chartW=PW-PPX-LPAD;
     const nM=chronoF.length;
-    const xp=i=>PPX+(nM>0?i/nM:0)*(PW-PPX-55);
+    const xp=i=>PPX+(nM>0?i/nM:0)*chartW;
     const plData=tPl.map((p,pi)=>{
       let cum=0;const cpts=[0];
       chronoF.forEach(m=>{
@@ -1368,12 +1369,21 @@ function renderStats(){
     });
     const maxC=Math.max(...plData.map(pd=>Math.max(...pd.pts)),1);
     const yp=v=>PH-PPY-(v/maxC)*(PH-2*PPY);
-    const lines=plData.map((pd,pi)=>{
+    // Horizontale Rasterlinien (je 1 Punkt)
+    const grid=[];for(let v=1;v<=maxC;v++){const gy=yp(v).toFixed(1);grid.push(`<line x1="${PPX}" y1="${gy}" x2="${PPX+chartW}" y2="${gy}" stroke="rgba(255,255,255,0.13)" stroke-width="0.8" stroke-dasharray="3,4"/>`);}
+    // Linienpfade & Endpunkt-Dots
+    const paths=plData.map(pd=>{
       const path=pd.pts.map((v,i)=>(i===0?'M':'L')+xp(i).toFixed(1)+','+yp(v).toFixed(1)).join(' ');
-      const ex=xp(nM).toFixed(1);const ey=yp(pd.pts[nM]).toFixed(1);
       return`<path d="${path}" fill="none" stroke="${pd.col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="${ex}" cy="${ey}" r="3" fill="${pd.col}"/>
-      <text x="${(xp(nM)+6).toFixed(1)}" y="${ey}" fill="${pd.col}" font-size="9" font-weight="700" dominant-baseline="middle">${pd.name}</text>`;
+      <circle cx="${xp(nM).toFixed(1)}" cy="${yp(pd.pts[nM]).toFixed(1)}" r="3" fill="${pd.col}"/>`;
+    }).join('');
+    // Namen: Überlappungen auflösen
+    const MINSP=13;
+    const lbls=plData.map(pd=>({...pd,fy:yp(pd.pts[nM]),ly:yp(pd.pts[nM])})).sort((a,b)=>a.fy-b.fy);
+    for(let i=1;i<lbls.length;i++){if(lbls[i].ly-lbls[i-1].ly<MINSP)lbls[i].ly=lbls[i-1].ly+MINSP;}
+    const labels=lbls.map(pd=>{
+      const ex=xp(nM);const conn=Math.abs(pd.ly-pd.fy)>4?`<line x1="${(ex+4).toFixed(1)}" y1="${pd.fy.toFixed(1)}" x2="${(ex+5).toFixed(1)}" y2="${pd.ly.toFixed(1)}" stroke="${pd.col}" stroke-width="0.7" opacity="0.5"/>`:'' ;
+      return`${conn}<text x="${(ex+8).toFixed(1)}" y="${pd.ly.toFixed(1)}" fill="${pd.col}" font-size="9" font-weight="700" dominant-baseline="middle">${pd.name}</text>`;
     }).join('');
     const titleCol=team==='rot'?'var(--rot-m)':'var(--blau-m)';
     const titleLbl=team==='rot'?'🔴 Team Rot':'🔵 Team Blau';
@@ -1381,8 +1391,8 @@ function renderStats(){
       <div style="font-size:10px;font-weight:700;color:${titleCol};margin-bottom:4px">${titleLbl}</div>
       <svg viewBox="0 0 ${PW} ${PH}" style="width:100%;display:block;overflow:visible">
         <line x1="${PPX}" y1="${PPY}" x2="${PPX}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-        <line x1="${PPX}" y1="${PH-PPY}" x2="${PW-8}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-        ${lines}
+        <line x1="${PPX}" y1="${PH-PPY}" x2="${PPX+chartW}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        ${grid.join('')}${paths}${labels}
       </svg>
     </div>`;
   };
