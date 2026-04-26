@@ -1181,7 +1181,7 @@ function renderLiveBoard(){
   const dayIcon={Donnerstag:'🌤',Freitag:'☀️',Samstag:'🏆'};
   return days.map(day=>{
     const dm=MATCHES.filter(m=>m.day===day);if(!dm.length)return'';
-    const cards=dm.map(m=>{
+    const mkCard=m=>{
       const x=results[m.id];
       let statusHtml='<span style="color:var(--grey);font-size:11px">—</span>';
       if(x){
@@ -1200,15 +1200,25 @@ function renderLiveBoard(){
       const pA=m.pA.map(p=>p.split(' ')[0]).join('/');
       const pB=m.pB.map(p=>p.split(' ')[0]).join('/');
       return`<div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px;text-align:center">
-        <div style="font-size:9px;color:var(--gold);letter-spacing:1px;font-weight:700;margin-bottom:5px">${fmtShort[m.type]||m.type}</div>
         <div style="font-size:11px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔴 ${pA}</div>
         <div style="font-size:11px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">🔵 ${pB}</div>
         <div>${statusHtml}</div>
       </div>`;
+    };
+    // Gruppieren nach Format
+    const fmtOrder=['bb','stabl','greensome','einzel','duebler'];
+    const fmtLabel={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',einzel:'Einzel',duebler:'Dübler Par3'};
+    const groups=[...new Set(dm.map(m=>m.type))].sort((a,b)=>(fmtOrder.indexOf(a)<0?99:fmtOrder.indexOf(a))-(fmtOrder.indexOf(b)<0?99:fmtOrder.indexOf(b)));
+    const groupsHtml=groups.map(type=>{
+      const gm=dm.filter(m=>m.type===type);
+      return`<div style="margin-bottom:10px">
+        <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase">${fmtLabel[type]||type}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">${gm.map(mkCard).join('')}</div>
+      </div>`;
     }).join('');
     return`<div style="margin-bottom:14px">
       <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--grey-l);margin-bottom:8px;text-transform:uppercase">${dayIcon[day]||'📅'} ${day}</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">${cards}</div>
+      ${groupsHtml}
     </div>`;
   }).join('');
 }
