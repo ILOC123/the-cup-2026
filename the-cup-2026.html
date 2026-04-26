@@ -864,7 +864,7 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 // COURSE DATA (Official Spielvorgabetabelle values)
 // OLD: Herren Gelb CR=72.7/SR=136/Par=72
 // NEW: Herren Gelb CR=70.9/SR=131/Par=72
-// Formula verified: Math.trunc(HCP*SR/113+(CR-Par)) = exact Excel values
+// WHS standard: Math.round(HCP*SR/113+(CR-Par))
 // ═══════════════════════════════════════════════════════════
 const COURSES={
   OLD:{name:'Old Course',holes:18,
@@ -1057,8 +1057,8 @@ function getTeam(n){return PL.rot.find(x=>x.n===n)?'rot':'blau';}
 function getHcp(n){const p=allP().find(x=>x.n===n);return p?p.hcp:0;}
 function cd(m){return COURSES[m.ckey||'OLD'];}
 function getTee(ckey){const k=TEES[ckey]||Object.keys(COURSES[ckey].tees)[0];return{key:k,...COURSES[ckey].tees[k]};}
-// VERIFIED formula: Math.trunc matches all Excel values exactly
-function courseHcp(hcpi,ckey){const t=getTee(ckey);return Math.trunc(hcpi*t.sr/113+(t.cr-t.par));}
+// WHS formula: Math.round(HCP * SR/113 + (CR-Par))
+function courseHcp(hcpi,ckey){const t=getTee(ckey);return Math.round(hcpi*t.sr/113+(t.cr-t.par));}
 function getHoleIdx(m){
   const c=cd(m);const tot=c.holes;
   if(m.nine==='back'&&tot===18)return Array.from({length:9},(_,i)=>i+9);
@@ -2067,7 +2067,7 @@ function bSettings(){
     +'</div>';
 
   return jahrSection+`<div class="ac"><h3>Platz & Tee Auswahl</h3>
-    <div style="font-size:11px;color:var(--grey);margin-bottom:12px">Das Tee bestimmt CR, Slope und Par → daraus werden alle Course HCPs berechnet (Formel: Math.trunc(HCP×SR/113+(CR−Par))).</div>
+    <div style="font-size:11px;color:var(--grey);margin-bottom:12px">Das Tee bestimmt CR, Slope und Par → daraus werden alle Course HCPs berechnet (Formel: Math.round(HCP×SR/113+(CR−Par))).</div>
     ${teeRows.join('')}
   </div>
   <div class="ac"><h3>Infos per Tag</h3>${DAYS.map(day=>{
