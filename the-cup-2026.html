@@ -1547,12 +1547,13 @@ function renderSB(){
       +(w&&w!=='-'?'<span class="ntp-pts-badge">+'+fmt(EXTRAS.ntp.pts)+'</span>':'')
       +'</div>';
   }).join('');
+  const avgHcp=team=>{const pl=PL[team]||[];if(!pl.length)return'—';return(pl.reduce((s,p)=>s+p.hcp,0)/pl.length).toFixed(1);};
   document.getElementById('sb-inner').innerHTML=`
   <div class="sbh">
     <div class="sbb">
-      <div class="ts rot"><div class="tn">Team Rot</div><div class="pts">${fmt(r)}</div></div>
+      <div class="ts rot"><div class="tn">Team Rot</div><div class="pts">${fmt(r)}</div><div style="font-size:11px;color:var(--grey);margin-top:2px">Ø HCP ${avgHcp('rot')}</div></div>
       <div class="svs">:</div>
-      <div class="ts blau"><div class="tn">Team Blau</div><div class="pts">${fmt(b)}</div></div>
+      <div class="ts blau"><div class="tn">Team Blau</div><div class="pts">${fmt(b)}</div><div style="font-size:11px;color:var(--grey);margin-top:2px">Ø HCP ${avgHcp('blau')}</div></div>
     </div>
     ${buildScoreBar(r,b,tot)}
   </div>
