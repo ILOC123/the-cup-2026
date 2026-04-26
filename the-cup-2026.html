@@ -1341,29 +1341,48 @@ function renderStats(){
       else rec[pn].h++;
     });
   });
-  const plSorted=allPl.filter(p=>rec[p.n].w||rec[p.n].l||rec[p.n].h).sort((a,b)=>{
-    const ra=rec[a.n],rb=rec[b.n];
-    const ta=ra.w+ra.h+ra.l||1,tb=rb.w+rb.h+rb.l||1;
-    return rb.w/tb-ra.w/ta||ra.l-rb.l;
-  });
-  const maxW=Math.max(...plSorted.map(p=>rec[p.n].w),1);
-  const plRows=plSorted.map((p,i)=>{
-    const r=rec[p.n];const col=p.team==='rot'?'var(--rot-m)':'var(--blau-m)';
-    const dot=p.team==='rot'?'🔴':'🔵';
-    const total=r.w+r.h+r.l||1;
-    const winPct=Math.round(r.w/total*100);
-    const barW=Math.round(r.w/maxW*100);
-    const rank=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
-    return`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-      <span style="font-size:12px;min-width:22px;text-align:center">${rank}</span>
-      <span style="font-size:12px;color:${col};font-weight:600;min-width:60px;white-space:nowrap">${dot} ${p.n}</span>
-      <div style="flex:1;height:8px;background:rgba(255,255,255,0.07);border-radius:4px;overflow:hidden">
-        <div style="height:100%;width:${barW}%;background:${col};border-radius:4px;transition:width 0.4s"></div>
-      </div>
-      <span style="font-size:11px;color:var(--grey-l);min-width:28px;text-align:right">${winPct}%</span>
-      <span style="font-size:10px;color:var(--grey);min-width:52px;text-align:right">${r.w}W·${r.h}T·${r.l}L</span>
+  // Spieler-Verlaufskurve: kumulierte Punkte pro Spieler über alle Matches
+  const rotCols=['#ff6b6b','#ee5a24','#ffd32a','#ff9f43','#f8a5c2','#c0392b'];
+  const blauCols=['#48dbfb','#0abde3','#54a0ff','#00d2d3','#a29bfe','#2471a3'];
+  const buildPlChart=(team,cols)=>{
+    const tPl=allPl.filter(p=>p.team===team&&(rec[p.n].w||rec[p.n].l||rec[p.n].h));
+    if(!tPl.length)return'';
+    const PW=300,PH=90,PPX=8,PPY=8;
+    const nM=chronoF.length;
+    const xp=i=>PPX+(nM>0?i/nM:0)*(PW-2*PPX);
+    const plData=tPl.map((p,pi)=>{
+      let cum=0;const cpts=[0];
+      chronoF.forEach(m=>{
+        const x=results[m.id];const inM=[...m.pA,...m.pB].includes(p.n);
+        if(inM){const pt=m.pA.includes(p.n)?m.tA:m.tB;
+          if(x.rotPts>x.blauPts){if(pt==='rot')cum+=1;}
+          else if(x.blauPts>x.rotPts){if(pt==='blau')cum+=1;}
+          else cum+=0.5;}
+        cpts.push(cum);
+      });
+      return{name:p.n.split(' ')[0],pts:cpts,col:cols[pi%cols.length],final:cum};
+    });
+    const maxC=Math.max(...plData.map(pd=>Math.max(...pd.pts)),1);
+    const yp=v=>PH-PPY-(v/maxC)*(PH-2*PPY);
+    const lines=plData.map(pd=>{
+      const path=pd.pts.map((v,i)=>(i===0?'M':'L')+xp(i).toFixed(1)+','+yp(v).toFixed(1)).join(' ');
+      return`<path d="${path}" fill="none" stroke="${pd.col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${xp(nM).toFixed(1)}" cy="${yp(pd.pts[nM]).toFixed(1)}" r="2.5" fill="${pd.col}"/>`;
+    }).join('');
+    const legend=plData.map(pd=>`<span style="font-size:10px;white-space:nowrap"><span style="color:${pd.col}">●</span> ${pd.name} <strong style="color:${pd.col}">${pd.final}</strong></span>`).join('');
+    const titleCol=team==='rot'?'var(--rot-m)':'var(--blau-m)';
+    const titleLbl=team==='rot'?'🔴 Team Rot':'🔵 Team Blau';
+    return`<div style="margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:${titleCol};margin-bottom:4px">${titleLbl}</div>
+      <svg viewBox="0 0 ${PW} ${PH}" style="width:100%;display:block;overflow:visible">
+        <line x1="${PPX}" y1="${PPY}" x2="${PPX}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <line x1="${PPX}" y1="${PH-PPY}" x2="${PW-PPX}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        ${lines}
+      </svg>
+      <div style="display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:6px">${legend}</div>
     </div>`;
-  }).join('');
+  };
+  const plRows=buildPlChart('rot',rotCols)+buildPlChart('blau',blauCols);
 
   // 4. Formkurve (letzte 5 Matches)
   const chronoF=finishedM.slice().sort((a,b)=>{const d=DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day);return d||MATCHES.indexOf(a)-MATCHES.indexOf(b);});
