@@ -1345,14 +1345,15 @@ function renderStats(){
   const chronoF=finishedM.slice().sort((a,b)=>{const d=DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day);return d||MATCHES.indexOf(a)-MATCHES.indexOf(b);});
 
   // Spieler-Verlaufskurve: kumulierte Punkte pro Spieler über alle Matches
-  const rotCols=['#ff6b6b','#ee5a24','#ffd32a','#ff9f43','#f8a5c2','#c0392b'];
-  const blauCols=['#48dbfb','#0abde3','#54a0ff','#00d2d3','#a29bfe','#2471a3'];
+  // Maximal kontrastreiche Farben für je 6 Spieler
+  const rotCols=['#ff4757','#ffa502','#eccc68','#ff6b81','#2ed573','#a29bfe'];
+  const blauCols=['#54a0ff','#00d2d3','#ff9ff3','#1dd1a1','#fdcb6e','#e17055'];
   const buildPlChart=(team,cols)=>{
     const tPl=allPl.filter(p=>p.team===team&&(rec[p.n].w||rec[p.n].l||rec[p.n].h));
     if(!tPl.length)return'';
-    const PW=300,PH=90,PPX=8,PPY=8;
+    const PW=300,PH=110,PPX=62,PPY=10;
     const nM=chronoF.length;
-    const xp=i=>PPX+(nM>0?i/nM:0)*(PW-2*PPX);
+    const xp=i=>PPX+(nM>0?i/nM:0)*(PW-PPX-8);
     const plData=tPl.map((p,pi)=>{
       let cum=0;const cpts=[0];
       chronoF.forEach(m=>{
@@ -1367,22 +1368,26 @@ function renderStats(){
     });
     const maxC=Math.max(...plData.map(pd=>Math.max(...pd.pts)),1);
     const yp=v=>PH-PPY-(v/maxC)*(PH-2*PPY);
-    const lines=plData.map(pd=>{
+    const nameStep=(PH-2*PPY)/Math.max(tPl.length-1,1);
+    const lines=plData.map((pd,pi)=>{
       const path=pd.pts.map((v,i)=>(i===0?'M':'L')+xp(i).toFixed(1)+','+yp(v).toFixed(1)).join(' ');
-      return`<path d="${path}" fill="none" stroke="${pd.col}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="${xp(nM).toFixed(1)}" cy="${yp(pd.pts[nM]).toFixed(1)}" r="2.5" fill="${pd.col}"/>`;
+      const ny=(PPY+pi*nameStep).toFixed(1);
+      const startY=yp(0).toFixed(1);
+      return`<text x="${(PPX-6).toFixed(1)}" y="${ny}" fill="${pd.col}" font-size="9" font-weight="700" text-anchor="end" dominant-baseline="middle">${pd.name}</text>
+      <line x1="${(PPX-5).toFixed(1)}" y1="${ny}" x2="${PPX}" y2="${startY}" stroke="${pd.col}" stroke-width="0.6" stroke-dasharray="2,2" opacity="0.45"/>
+      <path d="${path}" fill="none" stroke="${pd.col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${xp(nM).toFixed(1)}" cy="${yp(pd.pts[nM]).toFixed(1)}" r="3" fill="${pd.col}"/>
+      <text x="${(xp(nM)+4).toFixed(1)}" y="${(yp(pd.pts[nM])+4).toFixed(1)}" fill="${pd.col}" font-size="9" font-weight="700">${pd.final}</text>`;
     }).join('');
-    const legend=plData.map(pd=>`<span style="font-size:10px;white-space:nowrap"><span style="color:${pd.col}">●</span> ${pd.name} <strong style="color:${pd.col}">${pd.final}</strong></span>`).join('');
     const titleCol=team==='rot'?'var(--rot-m)':'var(--blau-m)';
     const titleLbl=team==='rot'?'🔴 Team Rot':'🔵 Team Blau';
-    return`<div style="margin-bottom:10px">
+    return`<div style="margin-bottom:12px">
       <div style="font-size:10px;font-weight:700;color:${titleCol};margin-bottom:4px">${titleLbl}</div>
       <svg viewBox="0 0 ${PW} ${PH}" style="width:100%;display:block;overflow:visible">
-        <line x1="${PPX}" y1="${PPY}" x2="${PPX}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-        <line x1="${PPX}" y1="${PH-PPY}" x2="${PW-PPX}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+        <line x1="${PPX}" y1="${PPY}" x2="${PPX}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        <line x1="${PPX}" y1="${PH-PPY}" x2="${PW-8}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
         ${lines}
       </svg>
-      <div style="display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:6px">${legend}</div>
     </div>`;
   };
   const plRows=buildPlChart('rot',rotCols)+buildPlChart('blau',blauCols);
