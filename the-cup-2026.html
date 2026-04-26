@@ -1199,18 +1199,16 @@ function renderLiveBoard(){
       }
       const pA=m.pA.map(p=>p.split(' ')[0]).join('/');
       const pB=m.pB.map(p=>p.split(' ')[0]).join('/');
-      return`<div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:10px">
-        <div style="font-size:9px;color:var(--gold);letter-spacing:1px;font-weight:700;min-width:24px">${fmtShort[m.type]||m.type}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔴 ${pA}</div>
-          <div style="font-size:12px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔵 ${pB}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">${statusHtml}</div>
+      return`<div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px;text-align:center">
+        <div style="font-size:9px;color:var(--gold);letter-spacing:1px;font-weight:700;margin-bottom:5px">${fmtShort[m.type]||m.type}</div>
+        <div style="font-size:11px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔴 ${pA}</div>
+        <div style="font-size:11px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">🔵 ${pB}</div>
+        <div>${statusHtml}</div>
       </div>`;
     }).join('');
     return`<div style="margin-bottom:14px">
       <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--grey-l);margin-bottom:8px;text-transform:uppercase">${dayIcon[day]||'📅'} ${day}</div>
-      <div style="display:flex;flex-direction:column;gap:6px">${cards}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">${cards}</div>
     </div>`;
   }).join('');
 }
