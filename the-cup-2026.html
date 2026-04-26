@@ -2673,7 +2673,7 @@ function bHcp(){
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${cO}</div>
     <div style="font-size:11px;color:var(--grey);margin-bottom:10px;padding:8px 10px;background:var(--dark3);border-radius:8px;line-height:1.6">
       <strong>${c.name}</strong> · Tee: <span class="tee-pill t${tee.key}">${tee.key}</span> · Par ${par} · CR ${tee.cr} · SR ${tee.sr}<br>
-      Formel: Math.trunc(HCP × ${tee.sr}/113 + (${tee.cr}−${par})) = CourseHCP
+      Formel: Math.round(HCP × ${tee.sr}/113 + (${tee.cr}−${par})) = CourseHCP
     </div>
     <table class="htbl"><tr><th>Spieler</th><th style="text-align:center">HCP</th><th style="text-align:center">CourseHCP</th><th>Vorgabeschläge</th></tr>${rows}</table>
   </div>`;
