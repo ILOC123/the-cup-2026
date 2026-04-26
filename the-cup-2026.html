@@ -1376,13 +1376,11 @@ function renderStats(){
       ${mkDots('r','#c0392b')}
       <path d="${blauPath}" fill="none" stroke="#2980b9" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
       ${mkDots('b','#2980b9')}
-      <text x="${xs(n)+4}" y="${ys(pts[n].r)+4}" fill="#e74c3c" font-size="10" font-weight="700">${fmt(cR)}</text>
-      <text x="${xs(n)+4}" y="${ys(pts[n].b)+4}" fill="#3498db" font-size="10" font-weight="700">${fmt(cB)}</text>
     </svg>
-    <div style="display:flex;gap:12px;margin-top:6px;font-size:11px">
-      <span><span style="color:#e74c3c">●</span> Rot</span>
-      <span><span style="color:#3498db">●</span> Blau</span>
-      <span style="margin-left:auto;color:var(--grey)">${cR>cB?'<span style="color:var(--rot-m);font-weight:700">🔴 Rot führt</span>':cB>cR?'<span style="color:var(--blau-m);font-weight:700">🔵 Blau führt</span>':'<span style="color:var(--gold);font-weight:700">Gleichstand</span>'}</span>
+    <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;align-items:center">
+      <span><span style="color:#e74c3c">●</span> Rot <strong style="color:#e74c3c">${fmt(cR)}</strong></span>
+      <span><span style="color:#3498db">●</span> Blau <strong style="color:#3498db">${fmt(cB)}</strong></span>
+      <span style="margin-left:auto">${cR>cB?'<span style="color:var(--rot-m);font-weight:700">🔴 Rot führt</span>':cB>cR?'<span style="color:var(--blau-m);font-weight:700">🔵 Blau führt</span>':'<span style="color:var(--gold);font-weight:700">Gleichstand</span>'}</span>
     </div>`:'';
   const momTxt=cR>cB?'<span style="color:var(--rot-m);font-weight:700">🔴 Rot</span>':cB>cR?'<span style="color:var(--blau-m);font-weight:700">🔵 Blau</span>':'<span style="color:var(--gold);font-weight:700">Ausgeglichen</span>';
   const formHtml=last5.length?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)">
