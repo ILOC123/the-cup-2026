@@ -773,6 +773,7 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 <div id="splash">
   <div class="logo">THE <span>CUP</span></div>
   <div class="sub" id="splash-jahr">2026 · Ryder Cup Format</div>
+  <div id="splash-countdown"></div>
 
   <!-- Schritt 0: Zuschauer oder Spieler -->
   <div id="sp-step0" style="width:100%;max-width:440px">
@@ -946,7 +947,7 @@ function buildDEF_M(){
   ];
 }
 const DEF_M=[]; // wird dynamisch via buildDEF_M() nach PL-Load befuellt
-const DEF_EXTRAS={ntp:{enabled:false,pts:0.25,rounds:[]},playerPw:'cup2026',einzel:[],jahr:'2026',teetimes:{}};
+const DEF_EXTRAS={ntp:{enabled:false,pts:0.25,rounds:[]},playerPw:'cup2026',einzel:[],jahr:'2026',teetimes:{},tourStart:''};
 const DEF_TEES={OLD:'Gelb',NEW:'Gelb',PAR3:'Standard'};
 
 let PL,MATCHES,EXTRAS,TEES;
@@ -1033,6 +1034,7 @@ function loadData(){
   if(!EXTRAS.einzel)EXTRAS.einzel=[];
   if(!EXTRAS.jahr)EXTRAS.jahr='2026';
   if(!EXTRAS.teetimes)EXTRAS.teetimes={};
+  if(EXTRAS.tourStart===undefined)EXTRAS.tourStart='';
   DAYS.forEach(d=>{if(typeof EXTRAS.teetimes[d]==='string'){EXTRAS.teetimes[d]={t1:EXTRAS.teetimes[d],t2:''}}});
   const st=localStorage.getItem('c26t');TEES=st?JSON.parse(st):JSON.parse(JSON.stringify(DEF_TEES));
   try{scores=JSON.parse(localStorage.getItem('c26s')||'{}');}catch(e){scores={};}
@@ -1268,7 +1270,28 @@ function buildSplash(){
   var bc=document.getElementById('blau-count');
   if(rc)rc.textContent=rotP.length+' Spieler';
   if(bc)bc.textContent=blauP.length+' Spieler';
-  // Start bei Step 0 (Spieler/Zuschauer Auswahl)
+  // Countdown
+  var cd=document.getElementById('splash-countdown');
+  if(cd){
+    var html='';
+    if(EXTRAS.tourStart){
+      var start=new Date(EXTRAS.tourStart+'T00:00:00');
+      var now=new Date();now.setHours(0,0,0,0);
+      var diff=Math.round((start-now)/(1000*60*60*24));
+      if(diff>0){
+        html='<div style="margin-bottom:20px;background:rgba(201,150,10,0.15);border:1px solid rgba(201,150,10,0.4);border-radius:12px;padding:10px 20px;text-align:center">'
+          +'<div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:2px">Countdown</div>'
+          +'<div style="font-family:var(--display);font-size:36px;color:#fff;letter-spacing:2px">'+diff+'</div>'
+          +'<div style="font-size:11px;color:var(--grey-l)">'+( diff===1?'Tag noch':'Tage noch')+'</div>'
+          +'</div>';
+      } else if(diff===0){
+        html='<div style="margin-bottom:20px;background:rgba(201,150,10,0.15);border:1px solid rgba(201,150,10,0.4);border-radius:12px;padding:10px 20px;text-align:center">'
+          +'<div style="font-family:var(--display);font-size:24px;color:var(--gold);letter-spacing:2px">🏌️ HEUTE GEHT\'S LOS!</div>'
+          +'</div>';
+      }
+    }
+    cd.innerHTML=html;
+  }
   showStep(0);
 }
 
@@ -1338,7 +1361,9 @@ function buildScoreBar(rot,blau,tot){
   const ntpLine=tot&&(tot.rotNtp>0||tot.blauNtp>0)
     ?'<div style="font-size:10px;color:var(--gold);text-align:center;margin-top:4px">📍 NTP: +'+fmt(tot.rotNtp)+' Rot · +'+fmt(tot.blauNtp)+' Blau</div>':'';
 
-  // Winner banner
+  // Winner banner + Konfetti
+  if(rotWon)setTimeout(function(){launchConfetti('rot');},400);
+  else if(blauWon)setTimeout(function(){launchConfetti('blau');},400);
   const winnerBanner=rotWon
     ?'<div style="background:linear-gradient(135deg,rgba(192,57,43,0.3),rgba(192,57,43,0.1));border:1px solid var(--rot-m);border-radius:10px;padding:10px 16px;text-align:center;margin-bottom:6px"><span style="font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--rot-m)">🏆 TEAM ROT GEWINNT THE CUP!</span></div>'
     :blauWon
@@ -2050,8 +2075,10 @@ function saveJahr(){
   var j=el.value.trim();
   if(!j){showToast('Jahr eingeben');return;}
   EXTRAS.jahr=j;
-  saveData();
-  showToast('Jahr gespeichert: '+j+' ✓');
+  var sd=document.getElementById('set-tourstart');
+  if(sd)EXTRAS.tourStart=sd.value||'';
+  saveData();buildSplash();
+  showToast('Gespeichert ✓');
   renderAdm();
 }
 
@@ -2064,12 +2091,14 @@ function bSettings(){
     </div>`;
   });
   const jahrSection='<div class="ac"><h3>Turnier</h3>'
-    +'<div style="display:flex;align-items:center;gap:8px">'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
     +'<div><div class="el">Jahr</div>'
     +'<input type="text" class="ain" id="set-jahr" value="'+(EXTRAS.jahr||'2026')+'" style="width:100px;font-size:16px;font-weight:700" maxlength="4"></div>'
+    +'<div><div class="el">Startdatum (für Countdown)</div>'
+    +'<input type="date" class="ain" id="set-tourstart" value="'+(EXTRAS.tourStart||'')+'" style="width:150px;font-size:14px"></div>'
     +'<button class="svb" onclick="saveJahr()" style="margin-top:14px">✓ Speichern</button>'
     +'</div>'
-    +'<div style="font-size:11px;color:var(--grey);margin-top:6px">Wird im Logo und Splash angezeigt</div>'
+    +'<div style="font-size:11px;color:var(--grey);margin-top:6px">Jahr wird im Logo angezeigt · Startdatum zeigt Countdown auf dem Splash-Screen</div>'
     +'</div>';
 
   return jahrSection+`<div class="ac"><h3>Platz & Tee Auswahl</h3>
@@ -3615,6 +3644,44 @@ function showConfirm(title,msg,onOk){
   document.getElementById('confirm-no').onclick=function(){el.remove();};
   document.getElementById('confirm-yes').onclick=function(){el.remove();onOk();};
   el.onclick=function(e){if(e.target===el)el.remove();};
+}
+
+let _confettiShown=false;
+function launchConfetti(team){
+  if(_confettiShown)return;_confettiShown=true;
+  var canvas=document.createElement('canvas');
+  canvas.style.cssText='position:fixed;inset:0;z-index:9996;pointer-events:none';
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  document.body.appendChild(canvas);
+  var ctx=canvas.getContext('2d');
+  var cols=team==='rot'
+    ?['#C0392B','#E74C3C','#F1948A','#ffffff','#C9960A']
+    :['#2980B9','#3498DB','#85C1E9','#ffffff','#C9960A'];
+  var pts=Array.from({length:150},function(){return{
+    x:Math.random()*canvas.width,
+    y:-20-Math.random()*300,
+    w:7+Math.random()*9,h:4+Math.random()*6,
+    col:cols[Math.floor(Math.random()*cols.length)],
+    vx:(Math.random()-0.5)*3,vy:2.5+Math.random()*3,
+    rot:Math.random()*Math.PI*2,rv:(Math.random()-0.5)*0.14
+  };});
+  var t0=Date.now();
+  function frame(){
+    var el=Date.now()-t0;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pts.forEach(function(p){
+      p.x+=p.vx;p.y+=p.vy;p.rot+=p.rv;
+      var alpha=el<3500?1:Math.max(0,1-(el-3500)/1000);
+      ctx.save();ctx.globalAlpha=alpha;
+      ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+      ctx.fillStyle=p.col;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.restore();
+    });
+    if(el<4500)requestAnimationFrame(frame);
+    else canvas.remove();
+  }
+  requestAnimationFrame(frame);
 }
 
 function showInstallHint(){
