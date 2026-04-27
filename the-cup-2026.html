@@ -1724,7 +1724,7 @@ function buildScoreBar(rot,blau,tot){
     +totalLine;
 }
 
-function renderSB(){
+function renderSB(){try{
   const tot=getTotals();const r=tot.rot,b=tot.blau,total=r+b||1;
   // Tage in fixer Reihenfolge: Do → Fr → Sa → weitere
   const DAY_ORDER=['Donnerstag','Freitag','Samstag','Dübler Par3'];
@@ -1798,7 +1798,7 @@ function renderSB(){
       +'</div>';
   }).join('')}`;
   updateWxInSB();
-}
+}catch(e){document.getElementById('sb-inner').innerHTML='<div style="padding:24px;color:var(--grey);font-size:13px;text-align:center"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="color:#ff6b6b;font-weight:700;margin-bottom:8px">Fehler im Scoreboard</div><div style="font-family:monospace;font-size:11px;color:var(--grey);word-break:break-all">'+e.message+'</div></div>';}}
 
 function renderSC(){
   const el=document.getElementById('sc-c');
