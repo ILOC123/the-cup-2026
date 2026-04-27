@@ -1231,10 +1231,16 @@ function renderLiveBoard(){
         extraA=` <span style="font-size:9px;color:var(--grey)">HCP ${chA}</span>`;
         extraB=` <span style="font-size:9px;color:var(--grey)">HCP ${chB}</span>`;
       }
-      return`<div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px;text-align:center">
-        <div style="font-size:11px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔴 ${pA}${extraA}</div>
-        <div style="font-size:11px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">🔵 ${pB}${extraB}</div>
-        <div>${statusHtml}</div>
+      return`<div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--rot-m);flex-shrink:0"></span>
+          <span style="font-size:11px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pA}${extraA}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:7px">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--blau-m);flex-shrink:0"></span>
+          <span style="font-size:11px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pB}${extraB}</span>
+        </div>
+        <div style="text-align:center">${statusHtml}</div>
       </div>`;
     };
     // Gruppieren nach Format
