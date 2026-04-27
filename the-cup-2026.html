@@ -1486,7 +1486,7 @@ function renderStats(){
       <span style="color:var(--grey-l)">💪 Deutlichste</span>
       <span><span style="color:${bi.wCol};font-weight:700">${bi.wLbl}</span> <span style="color:var(--grey)">${bi.pA} vs ${bi.pB} · ${bi.margin}UP</span></span>
     </div>`:'')}
-  ))():'';
+  )()):'';
 
   const mvpCard=mvp?card('🌟','MVP','var(--gold)',
     `<div style="font-size:9px;font-weight:700;color:${mvp.team==='rot'?'var(--rot-m)':'var(--blau-m)'}">
@@ -1724,7 +1724,7 @@ function buildScoreBar(rot,blau,tot){
     +totalLine;
 }
 
-function renderSB(){try{
+function renderSB(){
   const tot=getTotals();const r=tot.rot,b=tot.blau,total=r+b||1;
   // Tage in fixer Reihenfolge: Do → Fr → Sa → weitere
   const DAY_ORDER=['Donnerstag','Freitag','Samstag','Dübler Par3'];
@@ -1798,7 +1798,7 @@ function renderSB(){try{
       +'</div>';
   }).join('')}`;
   updateWxInSB();
-}catch(e){document.getElementById('sb-inner').innerHTML='<div style="padding:24px;color:var(--grey);font-size:13px;text-align:center"><div style="font-size:24px;margin-bottom:8px">⚠️</div><div style="color:#ff6b6b;font-weight:700;margin-bottom:8px">Fehler im Scoreboard</div><div style="font-family:monospace;font-size:11px;color:var(--grey);word-break:break-all">'+e.message+'</div></div>';}}
+}
 
 function renderSC(){
   const el=document.getElementById('sc-c');
