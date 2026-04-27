@@ -1400,8 +1400,9 @@ function renderStats(){
     }).join('');
     const titleCol=team==='rot'?'var(--rot-m)':'var(--blau-m)';
     const titleLbl=team==='rot'?'🔴 Team Rot':'🔵 Team Blau';
-    return`<div style="margin-bottom:20px">
-      <div style="font-size:10px;font-weight:700;color:${titleCol};margin-bottom:4px">${titleLbl}</div>
+    const isRot=team==='rot';
+    return`<div style="margin-bottom:${isRot?36:12}px;padding-bottom:${isRot?20:0}px;border-bottom:${isRot?'1px solid rgba(255,255,255,0.07)':'none'}">
+      <div style="font-size:10px;font-weight:700;color:${titleCol};margin-bottom:6px">${titleLbl}</div>
       <svg viewBox="0 0 ${PW} ${PH}" style="width:100%;display:block;overflow:visible">
         <line x1="${PPX}" y1="${PPY}" x2="${PPX}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
         <line x1="${PPX}" y1="${PH-PPY}" x2="${PPX+chartW}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
@@ -1469,19 +1470,19 @@ function renderStats(){
       return{margin,wCol,wLbl,pA,pB};
     }).sort((a,b)=>a.margin-b.margin);
     const cl=wm2[0],bi=wm2[wm2.length-1];
-    return`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">
+    return`<div style="display:flex;justify-content:space-between;font-size:10px;padding:4px 0">
       <span style="color:var(--grey-l)">🤏 Knappste</span>
       <span><span style="color:${cl.wCol};font-weight:700">${cl.wLbl}</span> <span style="color:var(--grey)">${cl.pA} vs ${cl.pB} · ${cl.margin}UP</span></span>
-    </div>`+(wm2.length>1?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">
+    </div>`+(wm2.length>1?`<div style="display:flex;justify-content:space-between;font-size:10px;padding:4px 0">
       <span style="color:var(--grey-l)">💪 Deutlichste</span>
       <span><span style="color:${bi.wCol};font-weight:700">${bi.wLbl}</span> <span style="color:var(--grey)">${bi.pA} vs ${bi.pB} · ${bi.margin}UP</span></span>
     </div>`:'')}
   ))():'';
 
   const mvpCard=mvp?card('🌟','MVP','var(--gold)',
-    `<div style="font-size:14px;font-weight:700;color:${mvp.team==='rot'?'var(--rot-m)':'var(--blau-m)'}">
+    `<div style="font-size:10px;font-weight:700;color:${mvp.team==='rot'?'var(--rot-m)':'var(--blau-m)'}">
       ${mvp.team==='rot'?'🔴':'🔵'} ${mvp.n}
-      <span style="color:var(--gold);font-size:13px;margin-left:8px">${fmt(mvp.pts)} Pkt.</span>
+      <span style="color:var(--gold);margin-left:8px">${fmt(mvp.pts)} Pkt.</span>
     </div>`
   ):'';
 
