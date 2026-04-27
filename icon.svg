@@ -9,5 +9,5 @@
   <rect width="512" height="512" rx="90" fill="url(#bg)"/>
   <text x="256" y="190" font-family="Arial Black,Arial" font-weight="900" font-size="110" fill="#ffffff" text-anchor="middle" letter-spacing="8">THE</text>
   <text x="256" y="320" font-family="Arial Black,Arial" font-weight="900" font-size="130" fill="#C9960A" text-anchor="middle" letter-spacing="6">CUP</text>
-  <text x="256" y="400" font-family="Arial,sans-serif" font-weight="400" font-size="46" fill="#888888" text-anchor="middle" letter-spacing="16">2026</text>
+  <text x="256" y="405" font-family="Arial Black,Arial" font-weight="900" font-size="58" fill="#000000" text-anchor="middle" letter-spacing="16">2026</text>
 </svg>

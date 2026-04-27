@@ -257,7 +257,7 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 .lr.ntp{background:rgba(231,76,60,0.04);}
 .lnum{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--white);text-align:center;}
 .lpar{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--grey-l);text-align:center;}
-.lstrok{font-size:11px;font-weight:700;text-align:center;line-height:1.3;color:var(--gold);}
+.lstrok{font-size:14px;font-weight:700;text-align:center;line-height:1.3;color:var(--gold);}
 
 /* Score input widget */
 .scw{display:flex;align-items:center;justify-content:center;
@@ -825,11 +825,13 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
         <div class="team-btn-dot rot-dot"></div>
         <div class="team-btn-name">TEAM ROT</div>
         <div class="team-btn-sub" id="rot-count"></div>
+        <div id="rot-hcp" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px"></div>
       </button>
       <button class="team-btn blau-btn" onclick="selectTeam('blau')">
         <div class="team-btn-dot blau-dot"></div>
         <div class="team-btn-name">TEAM BLAU</div>
         <div class="team-btn-sub" id="blau-count"></div>
+        <div id="blau-hcp" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px"></div>
       </button>
     </div>
   </div>
@@ -1231,10 +1233,16 @@ function renderLiveBoard(){
         extraA=` <span style="font-size:9px;color:var(--grey)">HCP ${chA}</span>`;
         extraB=` <span style="font-size:9px;color:var(--grey)">HCP ${chB}</span>`;
       }
-      return`<div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px;text-align:center">
-        <div style="font-size:11px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔴 ${pA}${extraA}</div>
-        <div style="font-size:11px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">🔵 ${pB}${extraB}</div>
-        <div>${statusHtml}</div>
+      return`<div style="background:var(--dark2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:8px 10px">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--rot-m);flex-shrink:0"></span>
+          <span style="font-size:11px;color:var(--rot-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pA}${extraA}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:7px">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--blau-m);flex-shrink:0"></span>
+          <span style="font-size:11px;color:var(--blau-m);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pB}${extraB}</span>
+        </div>
+        <div style="text-align:center">${statusHtml}</div>
       </div>`;
     };
     // Gruppieren nach Format
@@ -1246,8 +1254,9 @@ function renderLiveBoard(){
     const groupsHtml=groups.map((type,gi)=>{
       const gm=dm.filter(m=>m.type===type);
       const ttTag=ttSlots[gi]?`<span style="font-size:11px;color:var(--grey-l);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px">${ttSlots[gi]}</span>`:'';
+      const cname=gm[0]&&COURSES[gm[0].ckey]?`<span style="font-size:11px;color:var(--grey);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px">· ${COURSES[gm[0].ckey].name}</span>`:'';
       return`<div style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}${ttTag}</div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}${ttTag}${cname}</div>
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px">${gm.map(mkCard).join('')}</div>
       </div>`;
     }).join('');
@@ -1255,9 +1264,9 @@ function renderLiveBoard(){
       ${(()=>{
         let dr=0,db=0;dm.forEach(m=>{const x=results[m.id];if(x){dr+=x.rotPts||0;db+=x.blauPts||0;}});
         const wp=dr>db?'<span class="wp rot" style="font-size:10px">Rot</span>':db>dr?'<span class="wp blau" style="font-size:10px">Blau</span>':(dr||db)?'<span class="wp tie" style="font-size:10px">Gleich</span>':'';
-        const scHtml=(dr||db)?`<span style="font-size:12px;font-weight:700"><span style="color:var(--rot-m)">${fmt(dr)}</span><span style="color:var(--grey)"> : </span><span style="color:var(--blau-m)">${fmt(db)}</span></span>`:'';
+        const scHtml=(dr||db)?`<span style="font-size:22px;font-weight:900;letter-spacing:2px"><span style="color:var(--rot-m)">${fmt(dr)}</span><span style="color:var(--grey);font-size:16px"> : </span><span style="color:var(--blau-m)">${fmt(db)}</span></span>`:'';
         return`<div style="text-align:center;margin-bottom:10px">
-          <div style="font-size:15px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase;margin-bottom:4px">${day==='Samstag'?'🏆 ':''}${day}</div>
+          <div style="font-size:22px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase;margin-bottom:4px">${day==='Samstag'?'🏆 ':''}${day}</div>
           <div style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap">
             ${scHtml}${wp}
             <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)">⏳</span>
@@ -1590,6 +1599,10 @@ function buildSplash(){
   var bc=document.getElementById('blau-count');
   if(rc)rc.textContent=rotP.length+' Spieler';
   if(bc)bc.textContent=blauP.length+' Spieler';
+  var rh=document.getElementById('rot-hcp');var bh=document.getElementById('blau-hcp');
+  var avgH=function(pl){return pl.length?'Ø HCP '+(pl.reduce(function(s,p){return s+p.hcp;},0)/pl.length).toFixed(1):'';};
+  if(rh)rh.textContent=avgH(rotP);
+  if(bh)bh.textContent=avgH(blauP);
   // Countdown
   var cd=document.getElementById('splash-countdown');
   if(cd){
@@ -1635,13 +1648,6 @@ function selectTeam(team){
   curP=null;curT=null;
 }
 
-function backToTeam(){
-  document.getElementById('sp-step2').style.display='none';
-  document.getElementById('sp-step1').style.display='block';
-  var sb=document.getElementById('stbtn');
-  if(sb)sb.classList.remove('vis');
-  curP=null;curT=null;
-}
 function selP(n,t){document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('sel'));document.getElementById('pb-'+n)?.classList.add('sel');curP=n;curT=t;document.getElementById('stbtn').classList.add('vis');}
 function go(n,t){curP=n;curT=t;startApp();}
 function startApp(){
@@ -1672,11 +1678,10 @@ function buildScoreBar(rot,blau,tot){
   const rotWon=rot>=WIN_AT,blauWon=blau>=WIN_AT;
 
   // NTP line
-  const maxP=getMaxPts();
   const totalLine='<div style="font-size:9px;color:var(--grey);text-align:center;margin-top:3px">'
-    +'Sieg bei <strong style="color:var(--gold)">'+fmt(maxP.winAt)+'</strong> von '
-    +fmt(maxP.total)+' möglichen Punkten'
-    +(maxP.total!==21?' <span style="color:var(--gold)">★ inkl. Zusatzspiele</span>':'')
+    +'Sieg bei <strong style="color:var(--gold)">'+fmt(WIN_AT)+'</strong> von '
+    +fmt(TOTAL_PTS)+' möglichen Punkten'
+    +(TOTAL_PTS!==21?' <span style="color:var(--gold)">★ inkl. Zusatzspiele</span>':'')
     +'</div>';
   const ntpLine=tot&&(tot.rotNtp>0||tot.blauNtp>0)
     ?'<div style="font-size:10px;color:var(--gold);text-align:center;margin-top:4px">📍 NTP: +'+fmt(tot.rotNtp)+' Rot · +'+fmt(tot.blauNtp)+' Blau</div>':'';
@@ -1869,7 +1874,7 @@ function renderEntry(m){
   if(isEz){
     // For Einzel, strokes come from the pairwise diff (teamStrokes)
     // tsEz.ph[h] = +1 if pA gets stroke, -1 if pB gets stroke
-    const tsEz2=teamStrokes(m);
+    const tsEz2=tsEz;
     stA={};stB={};
     hi.forEach(h=>{
       stA[h]=tsEz2.ph[h]>0?tsEz2.ph[h]:0;
@@ -2000,36 +2005,6 @@ function renderEntry(m){
     }else if(isStabl)rc=`<div style="display:flex;flex-direction:column;gap:1px"><div class="spb zero">—</div><div class="spb zero">—</div></div>`;
     const la=c.laenge?`<div style="font-size:8px;color:rgba(255,255,255,0.25)">${typeof c.laenge[h]==='string'?c.laenge[h]:c.laenge[h]+'m'}</div>`:'';
     const isNtp=!!ntpG2;
-    // For Stableford 2v2: add second player inputs as extra row
-    var extraRow='';
-    if(isStabl2v2&&m.pA.length>1){
-      const strokesAh2=m.pA.map(p=>playerStrokes(p,m.ckey,hi));
-      const strokesBh2=m.pB.map(p=>playerStrokes(p,m.ckey,hi));
-      var ex='';
-      [1].forEach(function(pi){
-        if(pi>=m.pA.length)return;
-        var pA=m.pA[pi];var vA=hd[pA]||0;var stkA=strokesAh2[pi][h]||0;
-        var clsA=vA>0?scCls(vA,par,stkA):'';
-        var pB=m.pB[pi];var vB=hd[pB]||0;var stkB=strokesBh2[pi][h]||0;
-        var clsB=vB>0?scCls(vB,par,stkB):'';
-        ex+='<div class="scw-s '+cA+'">'
-          +'<div class="scw-name">'+pA+'</div>'
-          +'<div class="scw-row">'
-          +'<button class="scbtn" data-mid="'+m.id+'" data-h="'+h+'" data-pn="'+pA+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,-1)">−</button>'
-          +'<div class="scv '+clsA+'" id="sv-'+m.id+'-'+h+'-'+pA.replace(/[^a-zA-Z0-9]/g,'_')+'">'+( vA||'0')+'</div>'
-          +'<button class="scbtn" data-mid="'+m.id+'" data-h="'+h+'" data-pn="'+pA+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,1)">+</button>'
-          +'</div></div>';
-        ex+='<div class="scw-s '+cB+'">'
-          +'<div class="scw-name">'+pB+'</div>'
-          +'<div class="scw-row">'
-          +'<button class="scbtn" data-mid="'+m.id+'" data-h="'+h+'" data-pn="'+pB+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,-1)">−</button>'
-          +'<div class="scv '+clsB+'" id="sv-'+m.id+'-'+h+'-'+pB.replace(/[^a-zA-Z0-9]/g,'_')+'">'+( vB||'0')+'</div>'
-          +'<button class="scbtn" data-mid="'+m.id+'" data-h="'+h+'" data-pn="'+pB+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,1)">+</button>'
-          +'</div></div>';
-      });
-      extraRow='<div style="display:grid;grid-template-columns:'+gc+';gap:4px;padding:2px 6px 6px;border-bottom:1px solid rgba(255,255,255,0.04)">'
-        +'<div></div><div></div><div></div><div></div><div></div>'+ex+'<div></div></div>';
-    }
     if(isStabl2v2){
       // Stableford 2v2: card layout
       rows+='<div style="border-bottom:1px solid rgba(255,255,255,0.05);padding:4px 6px 10px;background:'+(done?'var(--dark3)':isNtp?'rgba(201,150,10,0.04)':'')+'">'
@@ -2066,7 +2041,7 @@ function renderEntry(m){
         <div class="lnum">${h+1}${isNtp?'<span style="font-size:8px;color:var(--gold)">📍</span>':''}${la}</div>
         <div class="lpar">${netParDisp}</div><div style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.25);text-align:center">${vg}</div>
         <div>${sd}</div><div></div>${allInputs}${rc}
-      </div>`+extraRow;
+      </div>`;
     }
     if(isNtp){
       var ntpRound=ntpG2;
@@ -2122,7 +2097,7 @@ function renderEntry(m){
   if(isGuest)el.classList.add('guest-mode'); else el.classList.remove('guest-mode');
   el.innerHTML=guestBanner+`<div class="seh"><button class="bk" onclick="back()">‹ Zurück</button>
     <div><div class="mt">${tAc}${m.pA.join(' & ')} vs ${tBc}${m.pB.join(' & ')}</div>
-    <div class="mf">${{bb:'Best Ball',stabl:'Stableford',duebler:'Dübler',einzel:'Einzel'}[m.type]} · ${c.name} · ${nL}</div></div>
+    <div class="mf">${{bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',duebler:'Dübler',einzel:'Einzel'}[m.type]||m.type} · ${c.name} · ${nL}</div></div>
   </div>
   ${isStabl?`<div class="ss">
     <div class="st2 rot">
@@ -2280,7 +2255,6 @@ function renderSP(){
   document.getElementById('sp-c').innerHTML='<div style="padding:12px 0 0">'+
     [...PL.rot.map(p=>({...p,team:'rot'})),...PL.blau.map(p=>({...p,team:'blau'}))]
     .map(p=>({...p,pts:pt[p.n]||0})).sort((a,b2)=>b2.pts-a.pts).map(p=>{
-      const rnds=MATCHES.filter(m=>m.pA.includes(p.n)||m.pB.includes(p.n)).map(m=>{const x=results[m.id];if(!x)return null;const isA=m.pA.includes(p.n);const tAr=m.tA==='rot';const pp=isA?(tAr?x.rotPts||0:x.blauPts||0)/m.pA.length:(tAr?x.blauPts||0:x.rotPts||0)/m.pB.length;const sd={Donnerstag:'DO',Freitag:'FR',Samstag:'SA'}[m.day]||'?';const fl={bb:'BB',stabl:'Stbl',duebler:'Dbl',einzel:'Ez',greensome:'Grn'}[m.type]||'?';return{label:`${sd} ${fl}`,pts:pp,team:p.team};}).filter(Boolean);
       return`<div class="spc"><div class="sph"><div class="spav ${p.team}">${p.n.slice(0,2).toUpperCase()}</div><div><div class="spnm">${p.n}</div><div class="sphcp">${p.team==='rot'?'Team Rot':'Team Blau'} · HCP ${p.hcp}</div></div><div class="sptot ${p.team}">${fmt(pt[p.n]||0)}</div></div></div>`;
     }).join('')+'</div>';
 }
@@ -2422,7 +2396,6 @@ function bPl(){
       <button class="svb" onclick="savePlayerPw()" style="flex-shrink:0">✓ Speichern</button>
     </div>
     <div style="font-size:10px;color:var(--grey);margin-top:8px">Aktuelles Passwort: <strong style="color:var(--gold)" id="pw-display"></strong></div>
-  </div>
   </div>`;
 }
 function savePlayerPw(){
@@ -3053,62 +3026,6 @@ function getSuggestedEinzelPartner(rotPlayer){
   return bi>=0?blau[bi]:null;
 }
 
-// ─── AUTO-PAIRING ──────────────────────────────────────────
-// Erzeugt ausgewogene Paarungen basierend auf aktueller Matrix
-// Ziel: jede Rot-Blau Paarung möglichst gleich oft
-function autoGeneratePairings(format,day,ckey,nine){
-  const {mtx,rot,blau}=buildMtx();
-  let newMatches=[];
-  const idPrefix=day.slice(0,2).toUpperCase()+'_AUTO_'+Date.now();
-
-  if(format==='einzel'){
-    // 1v1: alle 6 Rot vs alle 6 Blau, sortiert nach wenigsten Begegnungen
-    const pairs=[];
-    rot.forEach(r=>blau.forEach(b=>pairs.push({r,b,cnt:mtx[r][b]})));
-    pairs.sort((a,b2)=>a.cnt-b2.cnt);
-    // Greedy: wähle Paarungen mit wenigsten Begegnungen, jeder Spieler nur 1x
-    const usedR=new Set();const usedB=new Set();
-    pairs.forEach(({r,b})=>{
-      if(!usedR.has(r)&&!usedB.has(b)){
-        usedR.add(r);usedB.add(b);
-        newMatches.push({id:`${idPrefix}_${r}_${b}`,day,fmt:'Einzel 18L',type:'einzel',ckey,nine,tA:'rot',tB:'blau',pA:[r],pB:[b],holes:18});
-      }
-    });
-  } else if(format==='bb2v2'){
-    // 2v2 Best Ball: 3 Matches (alle 6 Rot und 6 Blau je einmal)
-    // Bilde optimale Rot-Paare und Blau-Paare
-    const rotPairs=bestPairs(rot,mtx,blau,'rot');
-    const blauPairs=bestPairs(blau,mtx,rot,'blau');
-    // Weise Paare einander zu: minimiere max Begegnungen
-    const assigned=assignPairs(rotPairs,blauPairs,mtx);
-    assigned.forEach(({rPair,bPair},i)=>{
-      const fmtOpts={OLD:'Best Ball 18L',NEW:'Best Ball 18L',PAR3:'Dübler 9L'};
-      const fmt2=fmtOpts[ckey]||'Best Ball 18L';
-      const h=fmt2.includes('18')?18:9;
-      newMatches.push({id:`${idPrefix}_BB${i+1}`,day,fmt:fmt2,type:ckey==='PAR3'?'duebler':'bb',ckey,nine,tA:'rot',tB:'blau',pA:rPair,pB:bPair,holes:h});
-    });
-  } else if(format==='stabl2v2'){
-    // 2v2 Stableford: 3 Matches (2 Rot vs 2 Blau, kombinierte Punkte)
-    const rotPairs=bestPairs(rot,mtx,blau,'rot');
-    const blauPairs=bestPairs(blau,mtx,rot,'blau');
-    const assigned=assignPairs(rotPairs,blauPairs,mtx);
-    assigned.forEach(({rPair,bPair},i)=>{
-      newMatches.push({id:`${idPrefix}_ST${i+1}`,day,fmt:'Stableford 9L',type:'stabl',ckey,nine,tA:'rot',tB:'blau',pA:rPair,pB:bPair,holes:9});
-    });
-  } else if(format==='greensome'){
-    // Greensome 3x2v2: gemischte Paare (1 Rot + 1 Blau pro Team)
-    // Hier werden Paare gebildet, aber jedes Paar hat EINEN Rot UND EINEN Blau
-    // Wir machen 3 Matches: jedes Match hat je 2 Spieler pro Seite
-    const rotPairs=bestPairs(rot,mtx,blau,'rot');
-    const blauPairs=bestPairs(blau,mtx,rot,'blau');
-    const assigned=assignPairs(rotPairs,blauPairs,mtx);
-    assigned.forEach(({rPair,bPair},i)=>{
-      newMatches.push({id:`${idPrefix}_GR${i+1}`,day,fmt:'Greensome 9L',type:'greensome',ckey,nine,tA:'rot',tB:'blau',pA:rPair,pB:bPair,holes:9});
-    });
-  }
-  return newMatches;
-}
-
 // Bilde optimale Paare aus einer Liste (greedy, minimiere Begegnungen)
 function bestPairs(players,mtx,opponents,side,pmtx){
   // Score pro Paar: Gegner-Begegnungen + Partner-Begegnungen (beide minimieren)
@@ -3366,18 +3283,15 @@ function addDueblerMatches(){
 
 function removeDueblerMatches(){
   var day=document.getElementById('du-day')?.value||'';
-  var before=MATCHES.length;
-  if(day){
-    MATCHES=MATCHES.filter(function(m){return!(m.type==='duebler'&&m.day===day);});
-  } else {
-    MATCHES=MATCHES.filter(function(m){return m.type!=='duebler';});
-  }
-  var removed=before-MATCHES.length;
-  if(!removed){showToast('Keine Dübler-Matches gefunden');return;}
-  // Scores löschen
-  MATCHES.filter(function(m){return m.type==='duebler';}).forEach(function(m){delete results[m.id];delete scores[m.id];});
+  var toRemove=day
+    ?MATCHES.filter(function(m){return m.type==='duebler'&&m.day===day;})
+    :MATCHES.filter(function(m){return m.type==='duebler';});
+  if(!toRemove.length){showToast('Keine Dübler-Matches gefunden');return;}
+  toRemove.forEach(function(m){delete results[m.id];delete scores[m.id];});
+  var ids=new Set(toRemove.map(function(m){return m.id;}));
+  MATCHES=MATCHES.filter(function(m){return!ids.has(m.id);});
   saveData();recalcAll();renderAdm();renderSB();renderSC();
-  showToast(removed+' Dübler-Match'+(removed===1?'':'es')+' entfernt ✓');
+  showToast(toRemove.length+' Dübler-Match'+(toRemove.length===1?'':'es')+' entfernt ✓');
 }
 function printSpielplan(){
   var fmtName={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',duebler:'Dübler',einzel:'Einzel'};
@@ -3729,7 +3643,8 @@ function archivieren(){
     hcps:{},
     mtx:mtx,
     matches:matchRes,
-    spielplan:spielplan
+    spielplan:spielplan,
+    statsHtml:renderStats()
   };
   // HCPs speichern
   PL.rot.concat(PL.blau).forEach(function(p){entry.hcps[p.n]=p.hcp;});
@@ -3748,6 +3663,73 @@ function delArchiv(id){
     renderAdm();
     showToast('Geloescht ✓');
   });
+}
+
+function downloadArchiv(id){
+  var arr=getArchiv();
+  var e=arr.find(function(x){return x.id===id;});
+  if(!e)return;
+  var winner=e.rotTotal>e.blauTotal?'🔴 Team Rot gewinnt'
+    :e.blauTotal>e.rotTotal?'🔵 Team Blau gewinnt'
+    :'🤝 Unentschieden';
+  var winColor=e.rotTotal>e.blauTotal?'#E74C3C':e.blauTotal>e.rotTotal?'#2980B9':'#C9960A';
+  var matchHtml='';
+  var spielplanSrc=e.spielplan||e.matches||[];
+  if(spielplanSrc.length){
+    var days=['Donnerstag','Freitag','Samstag','Dübler Par3'];
+    days.forEach(function(day){
+      var dm=spielplanSrc.filter(function(m){return m.day===day;});
+      if(!dm.length)return;
+      matchHtml+='<div class="day-hdr">'+day+'</div>';
+      dm.forEach(function(m){
+        var rPts=m.tA==='rot'?m.rotPts:m.blauPts;
+        var bPts=m.tA==='rot'?m.blauPts:m.rotPts;
+        var res=rPts!=null?(rPts>bPts?'🔴 Rot':bPts>rPts?'🔵 Blau':'TIE'):'–';
+        var resCol=rPts!=null&&rPts>bPts?'#E74C3C':rPts!=null&&bPts>rPts?'#2980B9':rPts!=null?'#C9960A':'#888';
+        var courseName=m.ckey==='OLD'?'Old Course':m.ckey==='NEW'?'New Course':m.ckey||'';
+        matchHtml+='<div class="match-row">'
+          +'<span class="rot-txt">'+m.pA+'</span>'
+          +' <span class="grey-txt">vs</span> '
+          +'<span class="blau-txt">'+m.pB+'</span>'
+          +'<span class="match-meta">'+m.fmt+(courseName?' · '+courseName:'')+'</span>'
+          +'<span style="color:'+resCol+';font-weight:700">'+res+'</span>'
+          +'</div>';
+      });
+    });
+  }
+  var statsSection=e.statsHtml?'<div class="section"><div class="sec-hdr">Turnier-Statistik</div>'+e.statsHtml+'</div>':'';
+  var rotTot=fmt(e.rotTotal);var blauTot=fmt(e.blauTotal);
+  var html='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+e.name+'</title>'
+    +'<style>:root{--rot-m:#E74C3C;--blau-m:#2980B9;--gold:#C9960A;--dark:#0D1117;--dark2:#161B22;--dark3:#21262D;--dark4:#2C3240;--grey:#8B949E;--white:#fff}'
+    +'body{margin:0;padding:16px 16px 40px;background:#0D1117;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:640px;margin:0 auto}'
+    +'h1{color:#C9960A;font-size:24px;font-weight:800;margin:0 0 2px}'
+    +'.sub{font-size:12px;color:#888;margin-bottom:20px}'
+    +'.section{background:#161B22;border-radius:12px;padding:14px;margin-bottom:14px}'
+    +'.sec-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8B949E;margin-bottom:10px}'
+    +'.score-box{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;text-align:center}'
+    +'.rot-txt{color:#E74C3C;font-weight:600}.blau-txt{color:#2980B9;font-weight:600}.grey-txt{color:#888}'
+    +'.pts{font-size:36px;font-weight:800}.tname{font-size:12px;margin-bottom:6px}.tplayers{font-size:10px;color:#888;margin-top:4px}'
+    +'.winner{font-size:12px;font-weight:700;color:'+winColor+'}'
+    +'.day-hdr{font-size:10px;color:#C9960A;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 4px}'
+    +'.match-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px;font-size:11px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)}'
+    +'.match-meta{margin-left:auto;color:#888;font-size:10px}'
+    +'.stit{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8B949E;margin-bottom:8px}'
+    +'</style></head><body>'
+    +'<h1>'+e.name+'</h1><div class="sub">'+e.datum+'</div>'
+    +'<div class="section"><div class="score-box">'
+    +'<div><div class="tname rot-txt">🔴 Team Rot</div><div class="pts rot-txt">'+rotTot+'</div><div class="tplayers">'+e.rot.join(', ')+'</div></div>'
+    +'<div class="winner">'+winner+'</div>'
+    +'<div><div class="tname blau-txt">🔵 Team Blau</div><div class="pts blau-txt">'+blauTot+'</div><div class="tplayers">'+e.blau.join(', ')+'</div></div>'
+    +'</div></div>'
+    +(matchHtml?'<div class="section"><div class="sec-hdr">Match-Ergebnisse</div>'+matchHtml+'</div>':'')
+    +statsSection
+    +'</body></html>';
+  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(e.name||'turnier').replace(/[^\w\- ]/g,'')+'.html';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);document.body.removeChild(a);},1000);
 }
 
 function bArchiv(){
@@ -3826,7 +3808,10 @@ function bArchiv(){
       +'<div style="font-size:15px;font-weight:700;color:var(--white)">'+e.name+'</div>'
       +'<div style="font-size:11px;color:var(--grey);margin-top:2px">'+e.datum+'</div>'
       +'</div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<button data-aid="'+e.id+'" onclick="downloadArchiv(this.dataset.aid)" style="background:transparent;border:1px solid rgba(201,150,10,0.4);color:var(--gold);border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer">📥 Download</button>'
       +'<button data-aid="'+e.id+'" onclick="delArchiv(this.dataset.aid)" style="background:transparent;border:1px solid rgba(192,57,43,0.4);color:var(--rot-m);border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer">🗑 Loeschen</button>'
+      +'</div>'
       +'</div>'
 
       // Endstand
@@ -3853,6 +3838,9 @@ function bArchiv(){
       // Match-Ergebnisse (aufklappbar)
       +(matchHtml?'<details style="margin-top:4px"><summary style="font-size:11px;color:var(--grey);cursor:pointer;padding:4px 0">Match-Ergebnisse anzeigen</summary>'
         +'<div style="margin-top:8px">'+matchHtml+'</div></details>':'')
+      // Statistik (aufklappbar)
+      +(e.statsHtml?'<details style="margin-top:4px"><summary style="font-size:11px;color:var(--grey);cursor:pointer;padding:4px 0">Turnier-Statistik anzeigen</summary>'
+        +'<div style="margin-top:8px">'+e.statsHtml+'</div></details>':'')
       +'</div>';
   }).join('');
 
@@ -3885,18 +3873,6 @@ function switchTab(el,v){
   el.classList.add('on');document.getElementById('view-'+v).classList.add('on');
   if(v==='sb')renderSB();if(v==='sc'){scView='list';aMatch=null;renderSC();}if(v==='sp')renderSP();if(v==='adm')renderAdm();
 }
-function toggleDayCard(el){
-  var did=el.getAttribute('data-did');
-  var d=document.getElementById(did);
-  if(!d)return;
-  var open=d.style.display!=='none';
-  d.style.display=open?'none':'block';
-  var arr=el.querySelector('.day-arr');
-  if(arr)arr.textContent=open?'▸':'▾';
-}
-
-
-
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
 function showConfirm(title,msg,onOk){
