@@ -1304,29 +1304,42 @@ function renderStats(){
   if(!dayCards.length)return'';
   const dayRows=`<div style="display:flex;gap:8px">${dayCards.join('')}</div>`;
 
-  // 2. Format-Bilanz mit Balken
+  // 2. Format-Bilanz als SVG-Balkenchart
   const fmtLbl={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',einzel:'Einzel',duebler:'Dübler Par3'};
   const fmtOrd=['bb','stabl','greensome','einzel','duebler'];
   const fmtTypes=[...new Set(finishedM.map(m=>m.type))].sort((a,b)=>(fmtOrd.indexOf(a)<0?99:fmtOrd.indexOf(a))-(fmtOrd.indexOf(b)<0?99:fmtOrd.indexOf(b)));
-  const fmtRows=fmtTypes.map(type=>{
+  const fmtData=fmtTypes.map(type=>{
     const fm=finishedM.filter(m=>m.type===type);
     let rW=0,bW=0,ti=0;fm.forEach(m=>{const x=results[m.id];if(x.rotPts>x.blauPts)rW++;else if(x.blauPts>x.rotPts)bW++;else ti++;});
-    const total=rW+bW+ti||1;
-    const rotPct=Math.round(rW/total*100);
-    const blauPct=Math.round(bW/total*100);
-    const tiePct=100-rotPct-blauPct;
-    return`<div style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span style="font-size:12px;color:var(--grey-l);font-weight:600">${fmtLbl[type]||type}</span>
-        <span style="font-size:11px;color:var(--grey)"><span style="color:var(--rot-m)">${rW}W</span> · ${ti} TIE · <span style="color:var(--blau-m)">${bW}W</span></span>
-      </div>
-      <div style="height:6px;border-radius:3px;background:rgba(255,255,255,0.07);overflow:hidden;display:flex">
-        <div style="width:${rotPct}%;background:var(--rot-m);transition:width 0.4s"></div>
-        <div style="width:${tiePct}%;background:var(--gold);opacity:0.6"></div>
-        <div style="width:${blauPct}%;background:var(--blau-m);margin-left:auto;transition:width 0.4s"></div>
-      </div>
+    return{label:fmtLbl[type]||type,rW,bW,ti,total:fm.length};
+  });
+  const fmtRows=(()=>{
+    const FW=300,FH=fmtData.length*28+20,FLPAD=72,FRPAD=8,FPY=10;
+    const maxTotal=Math.max(...fmtData.map(d=>d.total),1);
+    const xf=v=>FLPAD+(v/maxTotal)*(FW-FLPAD-FRPAD);
+    const barH=10,barGap=28;
+    const gridLines=[];
+    for(let v=1;v<=maxTotal;v++){const gx=xf(v).toFixed(1);gridLines.push(`<line x1="${gx}" y1="${FPY}" x2="${gx}" y2="${FH-FPY}" stroke="rgba(255,255,255,0.1)" stroke-width="0.8" stroke-dasharray="3,4"/>`);}
+    const bars=fmtData.map((d,i)=>{
+      const y=FPY+i*barGap;const mid=y+barH/2;
+      const rW2=xf(d.rW)-FLPAD;const tiW=xf(d.ti)-FLPAD;const bW2=xf(d.bW)-FLPAD;
+      return`<text x="${FLPAD-6}" y="${mid}" fill="rgba(255,255,255,0.7)" font-size="8.5" font-weight="600" text-anchor="end" dominant-baseline="middle">${d.label}</text>
+      <rect x="${FLPAD}" y="${y}" width="${rW2.toFixed(1)}" height="${barH}" rx="2" fill="#c0392b"/>
+      <rect x="${(FLPAD+rW2).toFixed(1)}" y="${y}" width="${tiW.toFixed(1)}" height="${barH}" rx="2" fill="var(--gold)" opacity="0.7"/>
+      <rect x="${(FLPAD+rW2+tiW).toFixed(1)}" y="${y}" width="${bW2.toFixed(1)}" height="${barH}" rx="2" fill="#2980b9"/>
+      <text x="${(xf(d.rW)+4).toFixed(1)}" y="${mid}" fill="#e74c3c" font-size="8" font-weight="700" dominant-baseline="middle">${d.rW>0?d.rW+'W':''}</text>
+      <text x="${(xf(d.total)+4).toFixed(1)}" y="${mid}" fill="#3498db" font-size="8" font-weight="700" dominant-baseline="middle">${d.bW>0?d.bW+'W':''}</text>`;
+    }).join('');
+    return`<svg viewBox="0 0 ${FW} ${FH}" style="width:100%;display:block;overflow:visible">
+      <line x1="${FLPAD}" y1="${FPY}" x2="${FLPAD}" y2="${FH-FPY}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      ${gridLines.join('')}${bars}
+    </svg>
+    <div style="display:flex;gap:12px;margin-top:6px;font-size:10px">
+      <span><span style="color:#e74c3c">█</span> Rot</span>
+      <span><span style="color:var(--gold)">█</span> TIE</span>
+      <span><span style="color:#3498db">█</span> Blau</span>
     </div>`;
-  }).join('');
+  })();
 
   // 3. Spieler-Bilanz (W/L/H)
   const allPl=[...(PL.rot||[]).map(p=>({...p,team:'rot'})),...(PL.blau||[]).map(p=>({...p,team:'blau'}))];
@@ -1383,11 +1396,11 @@ function renderStats(){
     for(let i=1;i<lbls.length;i++){if(lbls[i].ly-lbls[i-1].ly<MINSP)lbls[i].ly=lbls[i-1].ly+MINSP;}
     const labels=lbls.map(pd=>{
       const ex=xp(nM);const conn=Math.abs(pd.ly-pd.fy)>4?`<line x1="${(ex+4).toFixed(1)}" y1="${pd.fy.toFixed(1)}" x2="${(ex+5).toFixed(1)}" y2="${pd.ly.toFixed(1)}" stroke="${pd.col}" stroke-width="0.7" opacity="0.5"/>`:'' ;
-      return`${conn}<text x="${(ex+8).toFixed(1)}" y="${pd.ly.toFixed(1)}" fill="${pd.col}" font-size="9" font-weight="700" dominant-baseline="middle">${pd.name}</text>`;
+      return`${conn}<text x="${(ex+8).toFixed(1)}" y="${pd.ly.toFixed(1)}" fill="${pd.col}" font-size="7.5" font-weight="700" dominant-baseline="middle">${pd.name}</text>`;
     }).join('');
     const titleCol=team==='rot'?'var(--rot-m)':'var(--blau-m)';
     const titleLbl=team==='rot'?'🔴 Team Rot':'🔵 Team Blau';
-    return`<div style="margin-bottom:12px">
+    return`<div style="margin-bottom:20px">
       <div style="font-size:10px;font-weight:700;color:${titleCol};margin-bottom:4px">${titleLbl}</div>
       <svg viewBox="0 0 ${PW} ${PH}" style="width:100%;display:block;overflow:visible">
         <line x1="${PPX}" y1="${PPY}" x2="${PPX}" y2="${PH-PPY}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
