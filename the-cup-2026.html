@@ -825,11 +825,13 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
         <div class="team-btn-dot rot-dot"></div>
         <div class="team-btn-name">TEAM ROT</div>
         <div class="team-btn-sub" id="rot-count"></div>
+        <div id="rot-hcp" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px"></div>
       </button>
       <button class="team-btn blau-btn" onclick="selectTeam('blau')">
         <div class="team-btn-dot blau-dot"></div>
         <div class="team-btn-name">TEAM BLAU</div>
         <div class="team-btn-sub" id="blau-count"></div>
+        <div id="blau-hcp" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px"></div>
       </button>
     </div>
   </div>
@@ -1597,6 +1599,10 @@ function buildSplash(){
   var bc=document.getElementById('blau-count');
   if(rc)rc.textContent=rotP.length+' Spieler';
   if(bc)bc.textContent=blauP.length+' Spieler';
+  var rh=document.getElementById('rot-hcp');var bh=document.getElementById('blau-hcp');
+  var avgH=function(pl){return pl.length?'Ø HCP '+(pl.reduce(function(s,p){return s+p.hcp;},0)/pl.length).toFixed(1):'';};
+  if(rh)rh.textContent=avgH(rotP);
+  if(bh)bh.textContent=avgH(blauP);
   // Countdown
   var cd=document.getElementById('splash-countdown');
   if(cd){
