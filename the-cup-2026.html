@@ -1206,8 +1206,8 @@ function getNtpRoundWin(roundId){
   var d=ntpR[roundId];if(!d)return null;
   var bestRot=Infinity,bestBlau=Infinity;
   Object.values(d).forEach(function(md){
-    var r=parseFloat(md.rot)||Infinity;
-    var b=parseFloat(md.blau)||Infinity;
+    var r=(md.rot&&parseFloat(md.rot)>0)?parseFloat(md.rot):Infinity;
+    var b=(md.blau&&parseFloat(md.blau)>0)?parseFloat(md.blau):Infinity;
     if(r<bestRot)bestRot=r;
     if(b<bestBlau)bestBlau=b;
   });
@@ -2198,7 +2198,9 @@ function changeNtpHoleEl(el){
 function saveNtp(roundId,matchId,team,val){
   if(!ntpR[roundId])ntpR[roundId]={};
   if(!ntpR[roundId][matchId])ntpR[roundId][matchId]={};
-  ntpR[roundId][matchId][team]=parseFloat(val)||0;
+  var v=parseFloat(val)||0;
+  if(v>0){ntpR[roundId][matchId][team]=v;}
+  else{delete ntpR[roundId][matchId][team];}
   saveData();renderSB();
 }
 function updateNtpWinEl(rid,mid){
