@@ -515,6 +515,23 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 /* Toast */
 /* Eagle/Birdie Celebration */
 
+/* ── HOLE IN ONE ─────────────────────────────────────────── */
+.hio-row{padding:4px 0 10px;display:flex;justify-content:center;align-items:center;width:100%;text-align:center;}
+.hio-btn{padding:7px 22px;background:rgba(201,150,10,0.08);border:1.5px dashed rgba(201,150,10,0.4);border-radius:20px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);letter-spacing:0.5px;transition:background 0.15s;display:inline-block;}
+.hio-btn:active{background:rgba(201,150,10,0.2);}
+.hio-done-badge{padding:5px 14px;background:rgba(201,150,10,0.15);border:1.5px solid var(--gold);border-radius:20px;color:var(--gold);font-size:11px;font-weight:700;display:inline-block;}
+#hio-overlay{position:fixed;inset:0;z-index:7000;background:rgba(0,0,0,0.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+#hio-overlay.show{display:flex;}
+.hio-banner{background:linear-gradient(135deg,#1A1200,#2A2000,#1A1200);border:2px solid var(--gold);border-radius:24px;padding:32px 28px;text-align:center;width:100%;max-width:360px;}
+@keyframes hioIn{0%{transform:scale(0.4) rotate(-5deg);opacity:0;}65%{transform:scale(1.08) rotate(1deg);}100%{transform:scale(1) rotate(0deg);opacity:1;}}
+@keyframes hioGlow{0%,100%{text-shadow:0 0 20px rgba(201,150,10,0.8);}50%{text-shadow:0 0 40px rgba(201,150,10,1),0 0 60px rgba(201,150,10,0.5);}}
+.hio-banner-inner{animation:hioIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+.hio-emoji{font-size:64px;line-height:1;display:block;margin-bottom:8px;}
+.hio-title{font-family:var(--display);font-size:28px;letter-spacing:3px;color:var(--gold);animation:hioGlow 1.5s ease infinite;}
+.hio-sb-row{background:rgba(201,150,10,0.08);border:1px solid rgba(201,150,10,0.3);border-radius:10px;padding:8px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.locked-banner{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.15);border-radius:10px;margin:10px 12px 0;padding:9px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--grey-l);}
+.lock-badge{font-size:11px;color:var(--grey);margin-left:4px;}
+/* ── */
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
   background:rgba(22,27,34,0.97);color:white;padding:10px 20px;
   border-radius:20px;font-size:13px;font-weight:600;z-index:9999;
@@ -680,7 +697,7 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
   }
   var DB = 'https://the-cup-2026-default-rtdb.europe-west1.firebasedatabase.app';
   var PATH = '/cup2026';
-  var KEYS = ['c26s','c26r','c26ntp','c26m','c26e','c26t','c26p'];
+  var KEYS = ['c26s','c26r','c26ntp','c26m','c26e','c26t','c26p','c26hio'];
   var isSyncing = false;
   var lastPush = 0;
   var evtSource = null;
@@ -720,9 +737,13 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
     });
     isSyncing = false;
     if(changed && typeof loadData === 'function'){
+      var oldHioLen=typeof hioList!=='undefined'?hioList.length:0;
       loadData();
       recalcAll();
       renderSB();
+      if(typeof hioList!=='undefined'&&hioList.length>oldHioLen){
+        showHIOBanner(hioList[hioList.length-1]);
+      }
       if(typeof renderSC==='function') renderSC();
       if(typeof renderSP==='function') renderSP();
       showToast('🔄 Sync');
@@ -884,6 +905,9 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="hio-overlay" onclick="closeHIOOverlay()">
+  <div class="hio-banner" id="hio-banner-content" onclick="event.stopPropagation()"></div>
+</div>
 <div class="bs-overlay" id="stats-overlay" onclick="closeStatsSheet()"></div>
 <div class="bs-sheet" id="stats-sheet">
   <div class="bs-handle"></div>
@@ -979,6 +1003,7 @@ const DEF_TEES={OLD:'Gelb',NEW:'Gelb',PAR3:'Standard'};
 
 let PL,MATCHES,EXTRAS,TEES;
 let scores={},results={},ntpR={};
+let hioList=[];
 let curP=null,curT=null;
 let aDay='Donnerstag',scView='list',aMatch=null;
 let admOn=false,admTab='res',hcpCk='OLD';
@@ -1068,6 +1093,10 @@ function loadData(){
   try{scores=JSON.parse(localStorage.getItem('c26s')||'{}');}catch(e){scores={};}
   try{results=JSON.parse(localStorage.getItem('c26r')||'{}');}catch(e){results={};}
   try{ntpR=JSON.parse(localStorage.getItem('c26ntp')||'{}');}catch(e){ntpR={};}
+  // Remove ntpR entries whose roundId is no longer in EXTRAS.ntp.rounds
+  var validRids=new Set((EXTRAS.ntp.rounds||[]).map(function(r){return r.id;}));
+  Object.keys(ntpR).forEach(function(rid){if(!validRids.has(rid))delete ntpR[rid];});
+  try{hioList=JSON.parse(localStorage.getItem('c26hio')||'[]');}catch(e){hioList=[];}
   // Jahr in UI setzen
   var _j=EXTRAS.jahr||'2026';
   var _tj=document.getElementById('topbar-jahr');if(_tj)_tj.textContent=_j;
@@ -1081,6 +1110,7 @@ function saveData(){
   localStorage.setItem('c26s',JSON.stringify(scores));
   localStorage.setItem('c26r',JSON.stringify(results));
   localStorage.setItem('c26ntp',JSON.stringify(ntpR));
+  localStorage.setItem('c26hio',JSON.stringify(hioList));
   localStorage.setItem('c26p',JSON.stringify(PL));
   localStorage.setItem('c26m',JSON.stringify(MATCHES));
   localStorage.setItem('c26e',JSON.stringify(EXTRAS));
@@ -1179,8 +1209,8 @@ function getNtpRoundWin(roundId){
   var d=ntpR[roundId];if(!d)return null;
   var bestRot=Infinity,bestBlau=Infinity;
   Object.values(d).forEach(function(md){
-    var r=parseFloat(md.rot)||Infinity;
-    var b=parseFloat(md.blau)||Infinity;
+    var r=(md.rot&&parseFloat(md.rot)>0)?parseFloat(md.rot):Infinity;
+    var b=(md.blau&&parseFloat(md.blau)>0)?parseFloat(md.blau):Infinity;
     if(r<bestRot)bestRot=r;
     if(b<bestBlau)bestBlau=b;
   });
@@ -1805,7 +1835,8 @@ function renderSB(){
       +'<div class="pi2"><div class="n">'+p.n+'</div><div class="t">'+(p.team==='rot'?'Team Rot':'Team Blau')+' · HCP '+p.hcp+'</div></div>'
       +'<div class="pp '+ppCls+'">'+fmt(pt[p.n]||0)+'</div>'
       +'</div>';
-  }).join('')}`;
+  }).join('')}
+  ${hioList.length>0?`<div class="stit" style="margin-top:16px">⛳ HOLE IN ONE</div><div style="padding:4px 0 8px">${hioList.map(function(x){var tc=x.team==='rot'?'var(--rot-m)':'var(--blau-m)';var te=x.team==='rot'?'🔴':'🔵';return'<div class="hio-sb-row"><span style="font-size:22px">⛳</span><div style="flex:1"><div style="font-weight:700;color:'+tc+'">'+te+' '+x.player+'</div><div style="font-size:11px;color:var(--grey)">Loch '+x.hole+' · '+x.day+'</div></div><span style="font-size:20px">🏆</span></div>';}).join('')}</div>`:''}`;
   updateWxInSB();
 }
 
@@ -1858,7 +1889,7 @@ function renderSC(){
       <div class="mcdp"><div class="mcd" style="background:${m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'}"></div><div class="mcd" style="background:${m.tB==='rot'?'var(--rot-m)':'var(--blau-m)'}"></div></div>
       <div class="mct">
         <div style="font-size:13px;font-weight:700">${tAc}<span style="color:${colA}">${m.pA.join(' & ')}</span>${vorgA} <span style="color:var(--grey);font-weight:400">vs</span> ${tBc}<span style="color:${colB}">${m.pB.join(' & ')}</span>${vorgB}</div>
-        <div class="mcf">${fl[m.type]} · ${c.name} · ${nL} · <span class="tee-pill t${tK}">${tK}</span>${ntpCnt>0?' · 📍'+ntpCnt:''}${st}</div>
+        <div class="mcf">${fl[m.type]} · ${c.name} · ${nL} · <span class="tee-pill t${tK}">${tK}</span>${ntpCnt>0?' · 📍'+ntpCnt:''}${m.locked?'<span class="lock-badge">🔒</span>':''}${st}</div>
       </div><div style="font-size:18px;color:var(--grey)">›</div>
     </div>`;
   }).join('')+'</div>';
@@ -2052,6 +2083,14 @@ function renderEntry(m){
         <div>${sd}</div><div></div>${allInputs}${rc}
       </div>`;
     }
+    if(par===3&&!isGuest){
+      var hioForHole=hioList.filter(function(x){return x.matchId===m.id&&x.hole===h+1;});
+      if(hioForHole.length>0){
+        rows+='<div class="hio-row"><span class="hio-done-badge">⛳ Hole in One · '+hioForHole.map(function(x){return x.player;}).join(', ')+'</span></div>';
+      }else{
+        rows+='<div class="hio-row"><button class="hio-btn" data-mid="'+m.id+'" data-h="'+(h+1)+'" onclick="showHIOModal(this.dataset.mid,+this.dataset.h)">⛳ Hole in One!</button></div>';
+      }
+    }
     if(isNtp){
       var ntpRound=ntpG2;
       var matchNtpD=(ntpR[ntpRound.id]&&ntpR[ntpRound.id][m.id])||{};
@@ -2103,8 +2142,9 @@ function renderEntry(m){
         +`<div style="font-size:9px;color:var(--grey)">Stand</div>`;
   }
   const guestBanner=isGuest?'<div style="background:rgba(201,150,10,0.12);border:1.5px solid rgba(201,150,10,0.35);border-radius:10px;margin:10px 12px 0;padding:9px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gold)">👁 <span><strong>Zuschauer-Modus</strong> – Nur Anzeige, keine Eingaben möglich</span></div>':'';
+  const lockedBanner=m.locked&&!isGuest?'<div class="locked-banner">🔒 <span><strong>Match gesperrt</strong> – Scores können nicht mehr geändert werden</span></div>':'';
   if(isGuest)el.classList.add('guest-mode'); else el.classList.remove('guest-mode');
-  el.innerHTML=guestBanner+`<div class="seh"><button class="bk" onclick="back()">‹ Zurück</button>
+  el.innerHTML=guestBanner+lockedBanner+`<div class="seh"><button class="bk" onclick="back()">‹ Zurück</button>
     <div><div class="mt">${tAc}${m.pA.join(' & ')} vs ${tBc}${m.pB.join(' & ')}</div>
     <div class="mf">${{bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',duebler:'Dübler',einzel:'Einzel'}[m.type]||m.type} · ${c.name} · ${nL}</div></div>
   </div>
@@ -2161,7 +2201,9 @@ function changeNtpHoleEl(el){
 function saveNtp(roundId,matchId,team,val){
   if(!ntpR[roundId])ntpR[roundId]={};
   if(!ntpR[roundId][matchId])ntpR[roundId][matchId]={};
-  ntpR[roundId][matchId][team]=parseFloat(val)||0;
+  var v=parseFloat(val)||0;
+  if(v>0){ntpR[roundId][matchId][team]=v;}
+  else{delete ntpR[roundId][matchId][team];}
   saveData();renderSB();
 }
 function updateNtpWinEl(rid,mid){
@@ -2182,7 +2224,8 @@ function chS(mid,h,key,d2){
   if(curP==='Zuschauer'||!curP)return;
   if(_tapActive){_tapActive=false;}else if(event&&event.type==='click'&&'ontouchstart' in window)return;
   if(!scores[mid])scores[mid]={};if(!scores[mid][h])scores[mid][h]={};
-  const m=MATCHES.find(x=>x.id===mid);const c=cd(m);const hi=getHoleIdx(m);
+  const m=MATCHES.find(x=>x.id===mid);
+  if(m&&m.locked){showToast('Match gesperrt 🔒');return;}const c=cd(m);const hi=getHoleIdx(m);
   const prevV=scores[mid][h][key]||0;
   const nv=Math.max(1,Math.min(15,prevV+d2));
   if(prevV===0&&d2<0)return;
@@ -2229,7 +2272,8 @@ function chSp(mid,h,pName,d2){
   if(curP==='Zuschauer'||!curP)return;
   if(_tapActive){_tapActive=false;}else if(event&&event.type==='click'&&'ontouchstart' in window)return;
   if(!scores[mid])scores[mid]={};if(!scores[mid][h])scores[mid][h]={};
-  const m=MATCHES.find(x=>x.id===mid);const c=cd(m);const hi=getHoleIdx(m);
+  const m=MATCHES.find(x=>x.id===mid);
+  if(m&&m.locked){showToast('Match gesperrt 🔒');return;}const c=cd(m);const hi=getHoleIdx(m);
   const prevVp=scores[mid][h][pName]||0;
   const nv=Math.max(1,Math.min(15,prevVp+d2));
   if(prevVp===0&&d2<0)return;
@@ -2306,6 +2350,7 @@ function bRes(){
         +'<button class="rbtn '+clT+'" data-mid="'+m.id+'" data-w="tie" onclick="setR(this.dataset.mid,this.dataset.w)">½</button>'
         +'<button class="rbtn '+clB+'" data-mid="'+m.id+'" data-w="blau" onclick="setR(this.dataset.mid,this.dataset.w)">🔵</button>'
         +'<button class="rbtn" data-mid="'+m.id+'" onclick="clrR(this.dataset.mid)">✕</button>'
+        +'<button class="rbtn" data-mid="'+m.id+'" onclick="toggleMatchLock(this.dataset.mid)" title="'+(m.locked?'Entsperren':'Sperren')+'" style="opacity:'+(m.locked?'1':'0.5')+'">'+(m.locked?'🔒':'🔓')+'</button>'
         +'</div></div>';
     }).join('')+'</div>';
   }).join('');
@@ -2928,6 +2973,8 @@ function toggleNtpRound(groupKey,slot,active,holeVal){
   EXTRAS.ntp.rounds=(EXTRAS.ntp.rounds||[]).filter(function(r){
     return!(r.day===day&&r.types.includes(type)&&r.slot===slot);
   });
+  // Clear stored distances when deactivating
+  if(!active&&ntpR[rid]){delete ntpR[rid];}
   if(active){
     EXTRAS.ntp.rounds.push({id:rid,day:day,types:[type],holeIndex:hIdx,slot:slot,
       label:'NTP Loch '+(hIdx+1)});
@@ -3583,6 +3630,13 @@ function printErgebnisse(){
   el.style.display='none';
 }
 function chkPw(){const e=document.getElementById('pw');if(e&&e.value===PW){admOn=true;renderAdm();showToast('Admin entsperrt ✓');}else{showToast('Falsches Passwort');if(e)e.value='';}}
+function toggleMatchLock(mid){
+  const m=MATCHES.find(x=>x.id===mid);if(!m)return;
+  m.locked=!m.locked;
+  saveData();renderAdm();renderSC();
+  if(aMatch&&aMatch.id===mid)renderEntry(aMatch);
+  showToast(m.locked?'Match gesperrt 🔒':'Match entsperrt 🔓');
+}
 function setR(mid,w){const m=MATCHES.find(x=>x.id===mid);if(w==='rot')results[mid]={rotPts:1,blauPts:0,holesPlayed:m.holes,preset:true};else if(w==='blau')results[mid]={rotPts:0,blauPts:1,holesPlayed:m.holes,preset:true};else results[mid]={rotPts:0.5,blauPts:0.5,holesPlayed:m.holes,preset:true};saveData();renderAdm();renderSB();renderSP();showToast('Gespeichert ✓');}
 function clrR(mid){delete results[mid];delete scores[mid];saveData();renderAdm();renderSB();renderSP();}
 
@@ -3881,6 +3935,40 @@ function switchTab(el,v){
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
   el.classList.add('on');document.getElementById('view-'+v).classList.add('on');
   if(v==='sb')renderSB();if(v==='sc'){scView='list';aMatch=null;renderSC();}if(v==='sp')renderSP();if(v==='adm')renderAdm();
+}
+function showHIOModal(mid,hole){
+  var m=MATCHES.find(function(x){return x.id===mid;});if(!m)return;
+  var allPlayers=[...m.pA.map(function(p){return{n:p,team:m.tA};}), ...m.pB.map(function(p){return{n:p,team:m.tB};})];
+  var btns=allPlayers.map(function(p){
+    var col=p.team==='rot'?'var(--rot-m)':'var(--blau-m)';var em=p.team==='rot'?'🔴':'🔵';
+    return'<button onclick="confirmHIO(\''+mid+'\','+hole+',\''+p.n+'\',\''+p.team+'\')" style="display:block;width:100%;padding:12px;margin-bottom:8px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.12);border-radius:12px;color:'+col+';font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">'+em+' '+p.n+'</button>';
+  }).join('');
+  var ov=document.getElementById('hio-overlay');
+  document.getElementById('hio-banner-content').innerHTML='<div class="hio-banner-inner"><div class="hio-emoji">⛳</div><div style="font-size:16px;font-weight:700;color:var(--gold);margin-bottom:4px;letter-spacing:1px">HOLE IN ONE!</div><div style="font-size:12px;color:var(--grey);margin-bottom:20px">Loch '+hole+' · Wer hat es gemacht?</div>'+btns+'<button onclick="closeHIOOverlay()" style="width:100%;padding:10px;background:transparent;border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--grey);font-size:12px;cursor:pointer;font-family:var(--font);margin-top:4px">Abbrechen</button></div>';
+  ov.classList.add('show');
+}
+function confirmHIO(mid,hole,player,team){
+  var m=MATCHES.find(function(x){return x.id===mid;});
+  var entry={id:'hio_'+Date.now(),player:player,team:team,hole:hole,matchId:mid,day:m?m.day:'',ts:Date.now()};
+  hioList.push(entry);
+  localStorage.setItem('c26hio',JSON.stringify(hioList));
+  if(typeof window.fbPush==='function')window.fbPush();
+  closeHIOOverlay();
+  showHIOBanner(entry);
+  renderSB();
+  if(aMatch)renderEntry(aMatch);
+}
+function showHIOBanner(entry){
+  var tc=entry.team==='rot'?'var(--rot-m)':'var(--blau-m)';var te=entry.team==='rot'?'🔴 Team Rot':'🔵 Team Blau';
+  var ov=document.getElementById('hio-overlay');
+  document.getElementById('hio-banner-content').innerHTML='<div class="hio-banner-inner"><div class="hio-emoji">⛳</div><div class="hio-title">HOLE IN ONE!</div><div style="font-size:22px;font-weight:900;color:'+tc+';margin:12px 0 4px">'+te+'</div><div style="font-size:26px;font-weight:900;color:white;margin-bottom:4px">'+entry.player+'</div><div style="font-size:16px;color:var(--grey-l);margin-bottom:24px">Loch '+entry.hole+(entry.day?' · '+entry.day:'')+'</div><button onclick="closeHIOOverlay()" style="padding:12px 32px;background:var(--gold);border:none;border-radius:20px;color:#000;font-size:14px;font-weight:900;cursor:pointer;font-family:var(--font);letter-spacing:1px">WOW! 🎉</button></div>';
+  ov.classList.add('show');
+  if(window._hioTimer)clearTimeout(window._hioTimer);
+  window._hioTimer=setTimeout(closeHIOOverlay,12000);
+}
+function closeHIOOverlay(){
+  document.getElementById('hio-overlay').classList.remove('show');
+  if(window._hioTimer){clearTimeout(window._hioTimer);window._hioTimer=null;}
 }
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
