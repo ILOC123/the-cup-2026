@@ -669,6 +669,15 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 <!-- Firebase Live-Sync via REST API (kein SDK nötig) -->
 <script>
 (function(){
+  // Kein Firebase-Sync wenn lokal (file://) geöffnet — nur GitHub Pages synchronisiert
+  if(window.location.protocol === 'file:'){
+    window.fbPush = function(){};
+    document.addEventListener('DOMContentLoaded', function(){
+      var d=document.getElementById('fb-status');if(d)d.textContent='Lokal – kein Sync';
+      var dot=document.getElementById('sync-dot');if(dot)dot.style.background='#555';
+    });
+    return;
+  }
   var DB = 'https://the-cup-2026-default-rtdb.europe-west1.firebasedatabase.app';
   var PATH = '/cup2026';
   var KEYS = ['c26s','c26r','c26ntp','c26m','c26e','c26t','c26p'];
