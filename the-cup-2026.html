@@ -1222,14 +1222,20 @@ function getNtpRoundWin(roundId){
   return'tie';
 }
 
+function getNtpPpr(){
+  // pts per round = total pts divided by number of rounds
+  var n=Math.max(1,(EXTRAS.ntp.rounds||[]).length);
+  return EXTRAS.ntp.pts/n;
+}
 function getNtpPts(){
   var p={rot:0,blau:0};
   if(!EXTRAS.ntp.enabled||!EXTRAS.ntp.rounds)return p;
+  var ppr=getNtpPpr();
   EXTRAS.ntp.rounds.forEach(function(r){
     var w=getNtpRoundWin(r.id);
-    if(w==='rot')p.rot+=EXTRAS.ntp.pts;
-    else if(w==='blau')p.blau+=EXTRAS.ntp.pts;
-    else if(w==='tie'){p.rot+=EXTRAS.ntp.pts/2;p.blau+=EXTRAS.ntp.pts/2;}
+    if(w==='rot')p.rot+=ppr;
+    else if(w==='blau')p.blau+=ppr;
+    else if(w==='tie'){p.rot+=ppr/2;p.blau+=ppr/2;}
   });
   return p;
 }
@@ -1588,7 +1594,7 @@ function getPTot(){
   MATCHES.forEach(m=>{const r=results[m.id];if(!r)return;const tAr=m.tA==='rot';const pA=(tAr?r.rotPts||0:r.blauPts||0)/m.pA.length;const pB=(tAr?r.blauPts||0:r.rotPts||0)/m.pB.length;m.pA.forEach(p=>t[p]=(t[p]||0)+pA);m.pB.forEach(p=>t[p]=(t[p]||0)+pB);});
   if(EXTRAS.ntp.enabled){
     (EXTRAS.ntp.rounds||[]).forEach(function(r){
-      var w=getNtpRoundWin(r.id);var pts=EXTRAS.ntp.pts;
+      var w=getNtpRoundWin(r.id);var pts=getNtpPpr();
       var roundMs=MATCHES.filter(function(m){return m.day===r.day&&r.types.includes(m.type);});
       var rP=[],bP=[];
       roundMs.forEach(function(m){m.pA.concat(m.pB).forEach(function(p){
@@ -1804,7 +1810,7 @@ function renderSB(){
     return'<div class="ntp-sb-row"><div class="ntp-sb-lbl">📍 '+r.label+' ('+r.day+')'
       +' · '+rStr+' · '+bStr+'</div>'
       +'<span class="ntp-win-badge">'+ws+'</span>'
-      +(w&&w!=='-'?'<span class="ntp-pts-badge">+'+fmt(EXTRAS.ntp.pts)+'</span>':'')
+      +(w&&w!=='-'?'<span class="ntp-pts-badge">+'+fmt(getNtpPpr())+'</span>':'')
       +'</div>';
   }).join('');
   const avgHcp=team=>{const pl=PL[team]||[];if(!pl.length)return'—';return(pl.reduce((s,p)=>s+p.hcp,0)/pl.length).toFixed(1);};
@@ -1819,7 +1825,7 @@ function renderSB(){
   </div>
   <div class="stit" style="margin-top:8px">📋 LIVE BOARD</div>
   <div style="margin-bottom:4px">${renderLiveBoard()}</div>
-  ${ntpG?`<div class="stit" style="margin-top:8px">📍 NEAREST TO THE PIN</div><div class="ntp-sb"><div class="ntp-sb-hdr"><span style="font-size:16px">🎯</span><span style="font-size:12px;font-weight:700;color:var(--gold)">NTP · je ${fmt(EXTRAS.ntp.pts)} Pkt.</span></div>${ntpRows}</div>`:''}
+  ${ntpG?`<div class="stit" style="margin-top:8px">📍 NEAREST TO THE PIN</div><div class="ntp-sb"><div class="ntp-sb-hdr"><span style="font-size:16px">🎯</span><span style="font-size:12px;font-weight:700;color:var(--gold)">NTP · je ${fmt(getNtpPpr())} Pkt.</span></div>${ntpRows}</div>`:''}
   ${renderStats()!==''?`<button onclick="showStatsSheet()" style="width:100%;margin-top:12px;padding:11px;background:var(--dark2);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:var(--grey-l);font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.5px">📊 Turnier-Statistik</button>`:''}
   <div class="stit" style="margin-top:16px">🏅 RANGLISTE</div>
   ${sorted.map(function(p,i){
@@ -2104,7 +2110,7 @@ function renderEntry(m){
         :nW==='blau'?'<span style="color:var(--blau-m);font-weight:700">🔵 Blau führt Runde</span>'
         :nW==='tie'?'<span style="color:var(--gold)">½ Gleichstand</span>':'';
       rows+='<div class="ntp-row">'
-        +'<span class="ntp-lbl">📍 '+ntpRound.label+' &nbsp;·&nbsp; Bester Schuss gewinnt Runde (+'+fmt(EXTRAS.ntp.pts)+' Pkt)</span>'
+        +'<span class="ntp-lbl">📍 '+ntpRound.label+' &nbsp;·&nbsp; Bester Schuss gewinnt Runde (+'+fmt(getNtpPpr())+' Pkt)</span>'
         +'<div class="ntp-teams">'
         // ROT block
         +'<div class="ntp-team rot-t">'
@@ -2966,10 +2972,12 @@ function bExtras(){
     +'<label class="tog"><input type="checkbox" '+(enabled?'checked':'')+' onchange="EXTRAS.ntp.enabled=this.checked;saveData();renderAdm();renderSB()"><span class="tsl"></span></label>'
     +'</div>'
     +(enabled?
-      '<div style="margin:10px 0 8px"><div class="el">Punkte pro NTP-Sieg (pro Runde)</div>'
+      '<div style="margin:10px 0 8px"><div class="el">NTP Punkte Total</div>'
       +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<input type="number" class="ain" style="width:80px" value="'+pts+'" min="0.05" max="2" step="0.05" onchange="EXTRAS.ntp.pts=parseFloat(this.value)||0.25;saveData();renderSB()">'
-      +'<span style="font-size:12px;color:var(--grey)">Punkte pro Runde (0.25 = ¼ Pkt)</span></div></div>'
+      +'<input type="number" class="ain" style="width:80px" value="'+pts+'" min="0.05" max="2" step="0.05" onchange="EXTRAS.ntp.pts=parseFloat(this.value)||0.25;saveData();renderAdm();renderSB()">'
+      +'<span style="font-size:12px;color:var(--grey)">Total (wird gleichmässig auf alle NTP-Runden verteilt)</span></div>'
+      +'<div style="font-size:11px;color:var(--gold);margin-top:4px">→ Pro gewonnene Runde: +'+fmt(getNtpPpr())+' Pkt.</div>'
+      +'</div>'
       +'<div style="font-size:11px;color:var(--gold);font-weight:700;margin:10px 0 6px">NTP pro Runde (max. 2 Löcher):</div>'
       +(groupKeys.length?roundRows:'<div style="font-size:11px;color:var(--grey)">Keine qualifizierten Matches gefunden.</div>')
       :'<div style="font-size:12px;color:var(--grey);margin-top:8px">NTP ist deaktiviert.</div>')
@@ -3490,7 +3498,7 @@ function printErgebnisse(){
   if(EXTRAS.ntp.enabled){
     (EXTRAS.ntp.rounds||[]).forEach(function(r){
       var w=getNtpRoundWin(r.id);
-      var pts=EXTRAS.ntp.pts;
+      var pts=getNtpPpr();
       if(!w)return;
       MATCHES.filter(function(m){return r.day===m.day&&r.types.includes(m.type);}).forEach(function(m){
         if(w==='rot'&&m.tA==='rot'){m.pA.forEach(function(p){playerPts[p]=(playerPts[p]||0)+pts/m.pA.length;});}
@@ -3515,9 +3523,9 @@ function printErgebnisse(){
     if(EXTRAS.ntp.enabled){
       (EXTRAS.ntp.rounds||[]).filter(function(r){return r.day===day;}).forEach(function(r){
         var w=getNtpRoundWin(r.id);
-        if(w==='rot')ntpDayPts.rot+=EXTRAS.ntp.pts;
-        else if(w==='blau')ntpDayPts.blau+=EXTRAS.ntp.pts;
-        else if(w==='tie'){ntpDayPts.rot+=EXTRAS.ntp.pts/2;ntpDayPts.blau+=EXTRAS.ntp.pts/2;}
+        if(w==='rot')ntpDayPts.rot+=getNtpPpr();
+        else if(w==='blau')ntpDayPts.blau+=getNtpPpr();
+        else if(w==='tie'){ntpDayPts.rot+=getNtpPpr()/2;ntpDayPts.blau+=getNtpPpr()/2;}
       });
     }
     dr+=ntpDayPts.rot;db+=ntpDayPts.blau;
@@ -3585,7 +3593,7 @@ function printErgebnisse(){
           var w=getNtpRoundWin(r.id);
           var wTxt=w==='rot'?'🔴 Rot':w==='blau'?'🔵 Blau':w==='tie'?'½ Unentschieden':'–';
           var wCls=w==='rot'?'pe-result-rot':w==='blau'?'pe-result-blau':'pe-result-tie';
-          var pts=w?EXTRAS.ntp.pts:0;
+          var pts=w?getNtpPpr():0;
           html+='<div class="pe-ntp-row">';
           html+='<span class="pe-ntp-lbl">'+r.label+' (Loch '+(r.holeIndex+1)+')</span>';
           html+='<span class="pe-pts">'+fmt2(w==="tie"?pts/2:w?pts:0)+' : '+fmt2(w==="tie"?pts/2:w&&w!=="rot"?pts:0)+'</span>';
