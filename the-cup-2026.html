@@ -1584,7 +1584,7 @@ function getMaxPts(){
   // Each match = 1 point (split or full)
   var matchPts=MATCHES.length; // 1 pt per match
   // NTP: each active round = pts (split between winner/loser)
-  var ntpPts=EXTRAS.ntp.enabled?(EXTRAS.ntp.rounds||[]).length*EXTRAS.ntp.pts:0;
+  var ntpPts=EXTRAS.ntp.enabled?EXTRAS.ntp.pts:0;
   var total=matchPts+ntpPts;
   var winAt=total/2;
   return{total:total,winAt:winAt};
