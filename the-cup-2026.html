@@ -1093,6 +1093,9 @@ function loadData(){
   try{scores=JSON.parse(localStorage.getItem('c26s')||'{}');}catch(e){scores={};}
   try{results=JSON.parse(localStorage.getItem('c26r')||'{}');}catch(e){results={};}
   try{ntpR=JSON.parse(localStorage.getItem('c26ntp')||'{}');}catch(e){ntpR={};}
+  // Remove ntpR entries whose roundId is no longer in EXTRAS.ntp.rounds
+  var validRids=new Set((EXTRAS.ntp.rounds||[]).map(function(r){return r.id;}));
+  Object.keys(ntpR).forEach(function(rid){if(!validRids.has(rid))delete ntpR[rid];});
   try{hioList=JSON.parse(localStorage.getItem('c26hio')||'[]');}catch(e){hioList=[];}
   // Jahr in UI setzen
   var _j=EXTRAS.jahr||'2026';
@@ -2970,6 +2973,8 @@ function toggleNtpRound(groupKey,slot,active,holeVal){
   EXTRAS.ntp.rounds=(EXTRAS.ntp.rounds||[]).filter(function(r){
     return!(r.day===day&&r.types.includes(type)&&r.slot===slot);
   });
+  // Clear stored distances when deactivating
+  if(!active&&ntpR[rid]){delete ntpR[rid];}
   if(active){
     EXTRAS.ntp.rounds.push({id:rid,day:day,types:[type],holeIndex:hIdx,slot:slot,
       label:'NTP Loch '+(hIdx+1)});
