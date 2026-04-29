@@ -2772,11 +2772,12 @@ function rstM(){
     function(){
       MATCHES=[];
       EXTRAS.einzel=[];  // Einzel-Picks auch leeren
-      scores={};results={};ntpR={};
+      scores={};results={};ntpR={};hioList=[];
       localStorage.removeItem('c26m');
       localStorage.removeItem('c26s');
       localStorage.removeItem('c26r');
       localStorage.removeItem('c26ntp');
+      localStorage.removeItem('c26hio');
       saveData();recalcAll();
       renderAdm();renderSB();renderSP();renderSC();
       showToast('Spielplan geloescht ✓');
@@ -3831,7 +3832,12 @@ function bArchiv(){
     +'<div style="font-size:10px;color:var(--grey);margin-top:8px">'
     +'Aktuell: <strong style="color:var(--gold)">🔴 Rot '+fmt(getTotals().rot)+'</strong> &nbsp;vs&nbsp; '
     +'<strong style="color:var(--blau-m)">🔵 Blau '+fmt(getTotals().blau)+'</strong>'
-    +'</div></div>';
+    +'</div>'
+    +'<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.07)">'
+    +'<button onclick="rstAll()" style="width:100%;padding:10px;border-radius:10px;border:1px solid rgba(231,76,60,0.3);background:transparent;color:#e74c3c;font-size:13px;cursor:pointer">🔄 Turnier komplett zurücksetzen</button>'
+    +'<div style="font-size:10px;color:var(--grey);margin-top:6px;text-align:center">Scores, Ergebnisse, NTP, HIO werden gelöscht · Spieler & HCPs bleiben</div>'
+    +'</div>'
+    +'</div>';
 
   if(!arr.length){
     return form+'<div class="ac"><div style="text-align:center;color:var(--grey);font-size:13px;padding:20px 0">Noch keine archivierten Turniere</div></div>';
@@ -3935,13 +3941,14 @@ function rstAll(){
     'Turnier komplett zuruecksetzen?',
     'Scores, Ergebnisse, Spielplan und Einzel-Picks werden geloescht. Spieler und HCPs bleiben erhalten. Tipp: Zuerst archivieren!',
     function(){
-      scores={};results={};ntpR={};
+      scores={};results={};ntpR={};hioList=[];
       MATCHES=buildDEF_M();
       EXTRAS.einzel=[];
       EXTRAS.ntp={enabled:false,pts:0.25,rounds:[]};
       localStorage.removeItem('c26s');
       localStorage.removeItem('c26r');
       localStorage.removeItem('c26ntp');
+      localStorage.removeItem('c26hio');
       saveData();
       recalcAll();
       renderAdm();renderSB();renderSP();renderSC();
