@@ -2772,11 +2772,12 @@ function rstM(){
     function(){
       MATCHES=[];
       EXTRAS.einzel=[];  // Einzel-Picks auch leeren
-      scores={};results={};ntpR={};
+      scores={};results={};ntpR={};hioList=[];
       localStorage.removeItem('c26m');
       localStorage.removeItem('c26s');
       localStorage.removeItem('c26r');
       localStorage.removeItem('c26ntp');
+      localStorage.removeItem('c26hio');
       saveData();recalcAll();
       renderAdm();renderSB();renderSP();renderSC();
       showToast('Spielplan geloescht ✓');
@@ -3935,13 +3936,14 @@ function rstAll(){
     'Turnier komplett zuruecksetzen?',
     'Scores, Ergebnisse, Spielplan und Einzel-Picks werden geloescht. Spieler und HCPs bleiben erhalten. Tipp: Zuerst archivieren!',
     function(){
-      scores={};results={};ntpR={};
+      scores={};results={};ntpR={};hioList=[];
       MATCHES=buildDEF_M();
       EXTRAS.einzel=[];
       EXTRAS.ntp={enabled:false,pts:0.25,rounds:[]};
       localStorage.removeItem('c26s');
       localStorage.removeItem('c26r');
       localStorage.removeItem('c26ntp');
+      localStorage.removeItem('c26hio');
       saveData();
       recalcAll();
       renderAdm();renderSB();renderSP();renderSC();
