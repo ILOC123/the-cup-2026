@@ -1211,8 +1211,8 @@ function getNtpRoundWin(roundId){
   var d=ntpR[roundId];if(!d)return null;
   var bestRot=Infinity,bestBlau=Infinity;
   Object.values(d).forEach(function(md){
-    var r=(md.rot&&parseFloat(md.rot)>0)?parseFloat(md.rot):Infinity;
-    var b=(md.blau&&parseFloat(md.blau)>0)?parseFloat(md.blau):Infinity;
+    var r=(md.rot!==undefined&&md.rot!==null)?md.rot:Infinity;
+    var b=(md.blau!==undefined&&md.blau!==null)?md.blau:Infinity;
     if(r<bestRot)bestRot=r;
     if(b<bestBlau)bestBlau=b;
   });
@@ -2198,7 +2198,7 @@ function saveNtpMC(el){
   var meters=parseFloat((mEl&&mEl.value))||0;
   var cms=parseFloat((cmEl&&cmEl.value))||0;
   var total=meters*100+cms;
-  saveNtp(rid,mid,team,total);
+  if(total>0){saveNtp(rid,mid,team,total);}else{clearNtp(rid,mid,team);}
   updateNtpWinEl(rid,mid);
 }
 function toggleNtpRoundEl(el){
@@ -2209,7 +2209,8 @@ function changeNtpHoleEl(el){
   changeNtpHole(el.dataset.key,parseInt(el.dataset.slot),el.value);
 }
 function clearNtp(roundId,matchId,team){
-  saveNtp(roundId,matchId,team,0);
+  if(ntpR[roundId]&&ntpR[roundId][matchId])delete ntpR[roundId][matchId][team];
+  saveData();renderSB();
   var mEl=document.getElementById('ntp-m-'+roundId+'-'+matchId+'-'+team);
   var cmEl=document.getElementById('ntp-cm-'+roundId+'-'+matchId+'-'+team);
   if(mEl)mEl.value='';if(cmEl)cmEl.value='';
@@ -2219,8 +2220,8 @@ function clearNtp(roundId,matchId,team){
 function saveNtp(roundId,matchId,team,val){
   if(!ntpR[roundId])ntpR[roundId]={};
   if(!ntpR[roundId][matchId])ntpR[roundId][matchId]={};
-  var v=parseFloat(val)||0;
-  if(v>0){ntpR[roundId][matchId][team]=v;}
+  var v=parseFloat(val);
+  if(!isNaN(v)&&v>=0){ntpR[roundId][matchId][team]=v;}  // 0 = HIO, erlaubt
   else{delete ntpR[roundId][matchId][team];}
   saveData();renderSB();
 }
@@ -3984,7 +3985,7 @@ function confirmHIO(mid,hole,player,team){
     var hIdx=hole-1;
     (EXTRAS.ntp.rounds||[]).forEach(function(r){
       if(r.day===m.day&&r.types.includes(m.type)&&r.holeIndex===hIdx){
-        saveNtp(r.id,mid,team,1);
+        saveNtp(r.id,mid,team,0);
       }
     });
   }
