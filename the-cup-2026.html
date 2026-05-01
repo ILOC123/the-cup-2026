@@ -1722,11 +1722,11 @@ function buildScoreBar(rot,blau,tot){
 
   // Status text
   const lead=rot>blau?'🔴 Rot führt':blau>rot?'🔵 Blau führt':'🤝 Gleich';
-  const rotWon=rot>=WIN_AT,blauWon=blau>=WIN_AT;
+  const rotWon=rot>WIN_AT,blauWon=blau>WIN_AT;
 
   // NTP line
   const totalLine='<div style="font-size:9px;color:var(--grey);text-align:center;margin-top:3px">'
-    +'Sieg bei <strong style="color:var(--gold)">'+fmt(WIN_AT)+'</strong> von '
+    +'Sieg ab <strong style="color:var(--gold)">&gt;'+fmt(WIN_AT)+'</strong> von '
     +fmt(TOTAL_PTS)+' möglichen Punkten'
     +(TOTAL_PTS!==21?' <span style="color:var(--gold)">★ inkl. Zusatzspiele</span>':'')
     +'</div>';
