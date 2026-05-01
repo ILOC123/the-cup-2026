@@ -1196,14 +1196,7 @@ function ntpRoundsForMatch(m){
   });
 }
 
-function getNtpMatchWin(roundId,matchId){
-  // Who won NTP for a specific match in a round
-  var d=ntpR[roundId];if(!d||!d[matchId])return null;
-  var r=parseFloat(d[matchId].rot)||Infinity;
-  var b=parseFloat(d[matchId].blau)||Infinity;
-  if(r===Infinity&&b===Infinity)return null;
-  if(r<b)return'rot';if(b<r)return'blau';return'tie';
-}
+
 
 function getNtpRoundWin(roundId){
   // Who won overall in a round: closest single distance wins
@@ -1211,8 +1204,8 @@ function getNtpRoundWin(roundId){
   var d=ntpR[roundId];if(!d)return null;
   var bestRot=Infinity,bestBlau=Infinity;
   Object.values(d).forEach(function(md){
-    var r=(md.rot&&parseFloat(md.rot)>0)?parseFloat(md.rot):Infinity;
-    var b=(md.blau&&parseFloat(md.blau)>0)?parseFloat(md.blau):Infinity;
+    var r=(md.rot!==undefined&&md.rot!==null)?md.rot:Infinity;
+    var b=(md.blau!==undefined&&md.blau!==null)?md.blau:Infinity;
     if(r<bestRot)bestRot=r;
     if(b<bestBlau)bestBlau=b;
   });
@@ -1595,15 +1588,30 @@ function getPTot(){
   if(EXTRAS.ntp.enabled){
     (EXTRAS.ntp.rounds||[]).forEach(function(r){
       var w=getNtpRoundWin(r.id);var pts=getNtpPpr();
+      if(!w)return;
       var roundMs=MATCHES.filter(function(m){return m.day===r.day&&r.types.includes(m.type);});
-      var rP=[],bP=[];
-      roundMs.forEach(function(m){m.pA.concat(m.pB).forEach(function(p){
-        if(getTeam(p)==='rot'&&!rP.includes(p))rP.push(p);
-        else if(getTeam(p)==='blau'&&!bP.includes(p))bP.push(p);
-      });});
-      if(w==='rot'&&rP.length)rP.forEach(function(p){t[p]=(t[p]||0)+pts/rP.length;});
-      else if(w==='blau'&&bP.length)bP.forEach(function(p){t[p]=(t[p]||0)+pts/bP.length;});
-      else if(w==='tie'){rP.forEach(function(p){t[p]=(t[p]||0)+pts/2/rP.length;});bP.forEach(function(p){t[p]=(t[p]||0)+pts/2/bP.length;});}
+      // Find winning match per team (match with best/closest distance)
+      function bestMatch(team){
+        var best=Infinity,bm=null;
+        roundMs.forEach(function(m){
+          var md=(ntpR[r.id]&&ntpR[r.id][m.id])||{};
+          var v=md[team];
+          if(v!==undefined&&v!==null&&v<best){best=v;bm=m;}
+        });
+        return bm;
+      }
+      function addPts(team,share){
+        var m=bestMatch(team);if(!m)return;
+        // HIO: Punkte nur an den HIO-Spieler
+        var hio=hioList.find(function(x){return x.matchId===m.id&&x.hole===r.holeIndex+1&&x.team===team;});
+        if(hio){t[hio.player]=(t[hio.player]||0)+share;return;}
+        // NTP: Punkte nur an die Spieler des gewinnenden Matches
+        var pl=m.tA===team?m.pA:m.pB;
+        pl.forEach(function(p){t[p]=(t[p]||0)+share/pl.length;});
+      }
+      if(w==='rot'){addPts('rot',pts);}
+      else if(w==='blau'){addPts('blau',pts);}
+      else if(w==='tie'){addPts('rot',pts/2);addPts('blau',pts/2);}
     });
   }
   return t;
@@ -1722,11 +1730,11 @@ function buildScoreBar(rot,blau,tot){
 
   // Status text
   const lead=rot>blau?'🔴 Rot führt':blau>rot?'🔵 Blau führt':'🤝 Gleich';
-  const rotWon=rot>=WIN_AT,blauWon=blau>=WIN_AT;
+  const rotWon=rot>WIN_AT,blauWon=blau>WIN_AT;
 
   // NTP line
   const totalLine='<div style="font-size:9px;color:var(--grey);text-align:center;margin-top:3px">'
-    +'Sieg bei <strong style="color:var(--gold)">'+fmt(WIN_AT)+'</strong> von '
+    +'Sieg bei <strong style="color:var(--gold)">'+fmt(WIN_AT+0.5)+'</strong> von '
     +fmt(TOTAL_PTS)+' möglichen Punkten'
     +(TOTAL_PTS!==21?' <span style="color:var(--gold)">★ inkl. Zusatzspiele</span>':'')
     +'</div>';
@@ -1756,7 +1764,7 @@ function buildScoreBar(rot,blau,tot){
     +'<div style="position:absolute;left:'+winMarkPct+'%;top:-5px;bottom:-5px;width:2px;background:var(--gold);border-radius:2px;z-index:2">'
     +'<div style="position:absolute;top:-42px;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap">'
     +'<div style="font-size:20px;line-height:1.1">🏆</div>'
-    +'<div style="font-size:14px;color:var(--gold);font-weight:800;line-height:1.2;letter-spacing:0.5px">'+fmt(WIN_AT)+'</div>'
+    +'<div style="font-size:11px;color:var(--gold);font-weight:800;line-height:1.2;letter-spacing:0.5px">'+fmt(WIN_AT+0.5)+'</div>'
     +'</div>'
     +'</div>'
     +'</div>'
@@ -1791,20 +1799,24 @@ function renderSB(){
     var bestRot=null,bestBlau=null,bestRotMatch=null,bestBlauMatch=null;
     roundMs.forEach(function(m){
       var md=(ntpR[r.id]&&ntpR[r.id][m.id])||{};
-      if(md.rot){var v=parseFloat(md.rot);if(bestRot===null||v<bestRot){bestRot=v;bestRotMatch=m;}}
-      if(md.blau){var v=parseFloat(md.blau);if(bestBlau===null||v<bestBlau){bestBlau=v;bestBlauMatch=m;}}
+      if(md.rot!==undefined&&md.rot!==null){var v=md.rot;if(bestRot===null||v<bestRot){bestRot=v;bestRotMatch=m;}}
+      if(md.blau!==undefined&&md.blau!==null){var v=md.blau;if(bestBlau===null||v<bestBlau){bestBlau=v;bestBlauMatch=m;}}
     });
-    function fmtDist(cm){if(cm===null)return'—';var mc=cmToMC(cm);return mc.m>0?mc.m+'m '+mc.cm+'cm':mc.cm+'cm';}
+    function fmtDist(cm){if(cm===null||cm===undefined)return'—';if(cm===0)return'⛳ Hole in One';var mc=cmToMC(cm);return mc.m>0?mc.m+'m '+mc.cm+'cm':mc.cm+'cm';}
+    function getHIOPlayer(m,team){
+      if(!m)return null;
+      var h=hioList.find(function(x){return x.matchId===m.id&&x.hole===r.holeIndex+1&&x.team===team;});
+      return h?h.player:null;
+    }
     function getTeamPlayers(m,team){
       if(!m)return'';
-      var isEinzel=m.type==='einzel';
       var players=m.tA===team?m.pA:m.pB;
       if(!players||players.length===0)return'';
-      if(isEinzel)return players[0];
-      return players.join(' & ');
+      return players.length===1?players[0]:players.join(' & ');
     }
     var rD=fmtDist(bestRot);var bD=fmtDist(bestBlau);
-    var rN=getTeamPlayers(bestRotMatch,'rot');var bN=getTeamPlayers(bestBlauMatch,'blau');
+    var rN=bestRot===0?getHIOPlayer(bestRotMatch,'rot'):getTeamPlayers(bestRotMatch,'rot');
+    var bN=bestBlau===0?getHIOPlayer(bestBlauMatch,'blau'):getTeamPlayers(bestBlauMatch,'blau');
     var rStr='🔴 '+rD+(rN?' <span style="color:var(--rot-m);font-size:10px">'+rN+'</span>':'');
     var bStr='🔵 '+bD+(bN?' <span style="color:var(--blau-m);font-size:10px">'+bN+'</span>':'');
     return'<div class="ntp-sb-row"><div class="ntp-sb-lbl">📍 '+r.label+' ('+r.day+')'
@@ -2102,36 +2114,37 @@ function renderEntry(m){
     if(isNtp){
       var ntpRound=ntpG2;
       var matchNtpD=(ntpR[ntpRound.id]&&ntpR[ntpRound.id][m.id])||{};
-      var rTot=matchNtpD.rot||0;var bTot=matchNtpD.blau||0;
-      var rMC=cmToMC(rTot);var bMC=cmToMC(bTot);
+      var rTot=matchNtpD.rot!==undefined?matchNtpD.rot:null;
+      var bTot=matchNtpD.blau!==undefined?matchNtpD.blau:null;
+      var rIsHIO=rTot===0;var bIsHIO=bTot===0;
+      var rMC=cmToMC(rTot||0);var bMC=cmToMC(bTot||0);
       var rid=ntpRound.id,nmid=m.id;
-      var nW=getNtpRoundWin(rid);  // Runden-Gewinner, nicht Match
+      var rHioP=(hioList.find(function(x){return x.matchId===m.id&&x.hole===ntpRound.holeIndex+1&&x.team==='rot';})||{}).player||'';
+      var bHioP=(hioList.find(function(x){return x.matchId===m.id&&x.hole===ntpRound.holeIndex+1&&x.team==='blau';})||{}).player||'';
+      var nW=getNtpRoundWin(rid);
       var winHtml=nW==='rot'?'<span style="color:var(--rot-m);font-weight:700">🔴 Rot führt Runde</span>'
         :nW==='blau'?'<span style="color:var(--blau-m);font-weight:700">🔵 Blau führt Runde</span>'
         :nW==='tie'?'<span style="color:var(--gold)">½ Gleichstand</span>':'';
+      var clrBtn=function(team){return '<button class="ntp-clr" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="'+team+'" onclick="clearNtp(this.dataset.rid,this.dataset.mid,this.dataset.team)">×</button>';};
+      var rotInputs=rIsHIO
+        ?'<span style="font-size:11px;font-weight:700;color:var(--gold)">⛳ Hole in One'+(rHioP?' · '+rHioP:'')+'</span>'+clrBtn('rot')
+        :'<input type="number" id="ntp-m-'+rid+'-'+nmid+'-rot" class="ntp-num" placeholder="0" value="'+(rTot!==null&&rTot>0?rMC.m||'':'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="rot" oninput="saveNtpMC(this)">'
+         +'<span class="ntp-unit">m</span>'
+         +'<input type="number" id="ntp-cm-'+rid+'-'+nmid+'-rot" class="ntp-num" placeholder="0" value="'+(rTot!==null&&rTot>0?rMC.cm||'':'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="rot" oninput="saveNtpMC(this)">'
+         +'<span class="ntp-unit">cm</span>'
+         +(rTot!==null&&rTot>0?clrBtn('rot'):'');
+      var blauInputs=bIsHIO
+        ?'<span style="font-size:11px;font-weight:700;color:var(--gold)">⛳ Hole in One'+(bHioP?' · '+bHioP:'')+'</span>'+clrBtn('blau')
+        :'<input type="number" id="ntp-m-'+rid+'-'+nmid+'-blau" class="ntp-num" placeholder="0" value="'+(bTot!==null&&bTot>0?bMC.m||'':'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="blau" oninput="saveNtpMC(this)">'
+         +'<span class="ntp-unit">m</span>'
+         +'<input type="number" id="ntp-cm-'+rid+'-'+nmid+'-blau" class="ntp-num" placeholder="0" value="'+(bTot!==null&&bTot>0?bMC.cm||'':'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="blau" oninput="saveNtpMC(this)">'
+         +'<span class="ntp-unit">cm</span>'
+         +(bTot!==null&&bTot>0?clrBtn('blau'):'');
       rows+='<div class="ntp-row">'
         +'<span class="ntp-lbl">📍 '+ntpRound.label+' &nbsp;·&nbsp; Bester Schuss gewinnt Runde (+'+fmt(getNtpPpr())+' Pkt)</span>'
         +'<div class="ntp-teams">'
-        // ROT block
-        +'<div class="ntp-team rot-t">'
-        +'<div class="ntp-team-lbl">🔴 Rot</div>'
-        +'<div class="ntp-mc">'
-        +'<input type="number" id="ntp-m-'+rid+'-'+nmid+'-rot" class="ntp-num" placeholder="0" value="'+(rMC.m||'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="rot" oninput="saveNtpMC(this)">'
-        +'<span class="ntp-unit">m</span>'
-        +'<input type="number" id="ntp-cm-'+rid+'-'+nmid+'-rot" class="ntp-num" placeholder="0" value="'+(rMC.cm||'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="rot" oninput="saveNtpMC(this)">'
-        +'<span class="ntp-unit">cm</span>'
-        +(rTot>0?'<button class="ntp-clr" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="rot" onclick="clearNtp(this.dataset.rid,this.dataset.mid,this.dataset.team)">×</button>':'')
-        +'</div></div>'
-        // BLAU block
-        +'<div class="ntp-team blau-t">'
-        +'<div class="ntp-team-lbl">🔵 Blau</div>'
-        +'<div class="ntp-mc">'
-        +'<input type="number" id="ntp-m-'+rid+'-'+nmid+'-blau" class="ntp-num" placeholder="0" value="'+(bMC.m||'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="blau" oninput="saveNtpMC(this)">'
-        +'<span class="ntp-unit">m</span>'
-        +'<input type="number" id="ntp-cm-'+rid+'-'+nmid+'-blau" class="ntp-num" placeholder="0" value="'+(bMC.cm||'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="blau" oninput="saveNtpMC(this)">'
-        +'<span class="ntp-unit">cm</span>'
-        +(bTot>0?'<button class="ntp-clr" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="blau" onclick="clearNtp(this.dataset.rid,this.dataset.mid,this.dataset.team)">×</button>':'')
-        +'</div></div>'
+        +'<div class="ntp-team rot-t"><div class="ntp-team-lbl">🔴 Rot</div><div class="ntp-mc">'+rotInputs+'</div></div>'
+        +'<div class="ntp-team blau-t"><div class="ntp-team-lbl">🔵 Blau</div><div class="ntp-mc">'+blauInputs+'</div></div>'
         +'</div>'
         +'<div class="ntp-result" id="ntp-win-'+rid+'-'+nmid+'">'+winHtml+'</div>'
         +'</div>';
@@ -2198,7 +2211,7 @@ function saveNtpMC(el){
   var meters=parseFloat((mEl&&mEl.value))||0;
   var cms=parseFloat((cmEl&&cmEl.value))||0;
   var total=meters*100+cms;
-  saveNtp(rid,mid,team,total);
+  if(total>0){saveNtp(rid,mid,team,total);}else{clearNtp(rid,mid,team);}
   updateNtpWinEl(rid,mid);
 }
 function toggleNtpRoundEl(el){
@@ -2209,7 +2222,8 @@ function changeNtpHoleEl(el){
   changeNtpHole(el.dataset.key,parseInt(el.dataset.slot),el.value);
 }
 function clearNtp(roundId,matchId,team){
-  saveNtp(roundId,matchId,team,0);
+  if(ntpR[roundId]&&ntpR[roundId][matchId])delete ntpR[roundId][matchId][team];
+  saveData();renderSB();
   var mEl=document.getElementById('ntp-m-'+roundId+'-'+matchId+'-'+team);
   var cmEl=document.getElementById('ntp-cm-'+roundId+'-'+matchId+'-'+team);
   if(mEl)mEl.value='';if(cmEl)cmEl.value='';
@@ -2219,8 +2233,8 @@ function clearNtp(roundId,matchId,team){
 function saveNtp(roundId,matchId,team,val){
   if(!ntpR[roundId])ntpR[roundId]={};
   if(!ntpR[roundId][matchId])ntpR[roundId][matchId]={};
-  var v=parseFloat(val)||0;
-  if(v>0){ntpR[roundId][matchId][team]=v;}
+  var v=parseFloat(val);
+  if(!isNaN(v)&&v>=0){ntpR[roundId][matchId][team]=v;}  // 0 = HIO, erlaubt
   else{delete ntpR[roundId][matchId][team];}
   saveData();renderSB();
 }
@@ -2982,7 +2996,42 @@ function bExtras(){
       +'<div style="font-size:11px;color:var(--gold);font-weight:700;margin:10px 0 6px">NTP pro Runde (max. 2 Löcher):</div>'
       +(groupKeys.length?roundRows:'<div style="font-size:11px;color:var(--grey)">Keine qualifizierten Matches gefunden.</div>')
       :'<div style="font-size:12px;color:var(--grey);margin-top:8px">NTP ist deaktiviert.</div>')
+    +'</div>'
+    // HIO Verwaltung
+    +'<div class="ac" style="margin-top:12px"><h3>⛳ Hole in One Verwaltung</h3>'
+    +(hioList.length===0
+      ?'<div style="font-size:12px;color:var(--grey);padding:8px 0">Noch keine Holes in One erfasst.</div>'
+      :hioList.map(function(x){
+          var tc=x.team==='rot'?'var(--rot-m)':'var(--blau-m)';
+          var te=x.team==='rot'?'🔴':'🔵';
+          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)">'
+            +'<span style="font-size:20px">⛳</span>'
+            +'<div style="flex:1"><div style="font-weight:700;color:'+tc+'">'+te+' '+x.player+'</div>'
+            +'<div style="font-size:11px;color:var(--grey)">Loch '+x.hole+' · '+x.day+'</div></div>'
+            +'<button class="rbtn" onclick="deleteHIO(\''+x.id+'\')" title="HIO löschen" style="color:#e74c3c;opacity:0.8">🗑</button>'
+            +'</div>';
+        }).join('')
+    )
     +'</div>';
+}
+
+function deleteHIO(id){
+  showConfirm('Hole in One löschen?','Dieser Eintrag wird unwiderruflich gelöscht.',function(){
+    var entry=hioList.find(function(x){return x.id===id;});
+    hioList=hioList.filter(function(x){return x.id!==id;});
+    // NTP-Wert zurücksetzen wenn dieser HIO ein NTP-Loch war
+    if(entry){
+      (EXTRAS.ntp.rounds||[]).forEach(function(r){
+        var m=MATCHES.find(function(x){return x.id===entry.matchId;});
+        if(m&&r.day===m.day&&r.types.includes(m.type)&&r.holeIndex===entry.hole-1){
+          clearNtp(r.id,entry.matchId,entry.team);
+        }
+      });
+    }
+    saveData();renderSB();renderAdm();
+    if(aMatch)renderEntry(aMatch);
+    showToast('HIO gelöscht ✓');
+  });
 }
 
 function toggleNtpRound(groupKey,slot,active,holeVal){
@@ -3979,6 +4028,15 @@ function confirmHIO(mid,hole,player,team){
   var entry={id:'hio_'+Date.now(),player:player,team:team,hole:hole,matchId:mid,day:m?m.day:'',ts:Date.now()};
   hioList.push(entry);
   localStorage.setItem('c26hio',JSON.stringify(hioList));
+  // HIO auf NTP-Loch → NTP automatisch für dieses Team gewinnen (Distanz = 1cm)
+  if(m&&EXTRAS.ntp.enabled){
+    var hIdx=hole-1;
+    (EXTRAS.ntp.rounds||[]).forEach(function(r){
+      if(r.day===m.day&&r.types.includes(m.type)&&r.holeIndex===hIdx){
+        saveNtp(r.id,mid,team,0);
+      }
+    });
+  }
   if(typeof window.fbPush==='function')window.fbPush();
   closeHIOOverlay();
   showHIOBanner(entry);
