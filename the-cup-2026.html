@@ -2977,7 +2977,42 @@ function bExtras(){
       +'<div style="font-size:11px;color:var(--gold);font-weight:700;margin:10px 0 6px">NTP pro Runde (max. 2 Löcher):</div>'
       +(groupKeys.length?roundRows:'<div style="font-size:11px;color:var(--grey)">Keine qualifizierten Matches gefunden.</div>')
       :'<div style="font-size:12px;color:var(--grey);margin-top:8px">NTP ist deaktiviert.</div>')
+    +'</div>'
+    // HIO Verwaltung
+    +'<div class="ac" style="margin-top:12px"><h3>⛳ Hole in One Verwaltung</h3>'
+    +(hioList.length===0
+      ?'<div style="font-size:12px;color:var(--grey);padding:8px 0">Noch keine Holes in One erfasst.</div>'
+      :hioList.map(function(x){
+          var tc=x.team==='rot'?'var(--rot-m)':'var(--blau-m)';
+          var te=x.team==='rot'?'🔴':'🔵';
+          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)">'
+            +'<span style="font-size:20px">⛳</span>'
+            +'<div style="flex:1"><div style="font-weight:700;color:'+tc+'">'+te+' '+x.player+'</div>'
+            +'<div style="font-size:11px;color:var(--grey)">Loch '+x.hole+' · '+x.day+'</div></div>'
+            +'<button class="rbtn" onclick="deleteHIO(\''+x.id+'\')" title="HIO löschen" style="color:#e74c3c;opacity:0.8">🗑</button>'
+            +'</div>';
+        }).join('')
+    )
     +'</div>';
+}
+
+function deleteHIO(id){
+  showConfirm('Hole in One löschen?','Dieser Eintrag wird unwiderruflich gelöscht.',function(){
+    var entry=hioList.find(function(x){return x.id===id;});
+    hioList=hioList.filter(function(x){return x.id!==id;});
+    // NTP-Wert zurücksetzen wenn dieser HIO ein NTP-Loch war
+    if(entry){
+      (EXTRAS.ntp.rounds||[]).forEach(function(r){
+        var m=MATCHES.find(function(x){return x.id===entry.matchId;});
+        if(m&&r.day===m.day&&r.types.includes(m.type)&&r.holeIndex===entry.hole-1){
+          clearNtp(r.id,entry.matchId,entry.team);
+        }
+      });
+    }
+    saveData();renderSB();renderAdm();
+    if(aMatch)renderEntry(aMatch);
+    showToast('HIO gelöscht ✓');
+  });
 }
 
 function toggleNtpRound(groupKey,slot,active,holeVal){
