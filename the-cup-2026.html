@@ -1196,14 +1196,7 @@ function ntpRoundsForMatch(m){
   });
 }
 
-function getNtpMatchWin(roundId,matchId){
-  // Who won NTP for a specific match in a round
-  var d=ntpR[roundId];if(!d||!d[matchId])return null;
-  var r=parseFloat(d[matchId].rot)||Infinity;
-  var b=parseFloat(d[matchId].blau)||Infinity;
-  if(r===Infinity&&b===Infinity)return null;
-  if(r<b)return'rot';if(b<r)return'blau';return'tie';
-}
+
 
 function getNtpRoundWin(roundId){
   // Who won overall in a round: closest single distance wins
