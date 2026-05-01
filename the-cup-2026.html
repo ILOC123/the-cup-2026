@@ -2115,14 +2115,14 @@ function renderEntry(m){
         :nW==='tie'?'<span style="color:var(--gold)">½ Gleichstand</span>':'';
       var clrBtn=function(team){return '<button class="ntp-clr" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="'+team+'" onclick="clearNtp(this.dataset.rid,this.dataset.mid,this.dataset.team)">×</button>';};
       var rotInputs=rIsHIO
-        ?'<span style="font-size:11px;font-weight:700;color:var(--gold)">⛳ HIO'+(rHioP?' · '+rHioP:'')+'</span>'+clrBtn('rot')
+        ?'<span style="font-size:11px;font-weight:700;color:var(--gold)">⛳ Hole in One'+(rHioP?' · '+rHioP:'')+'</span>'+clrBtn('rot')
         :'<input type="number" id="ntp-m-'+rid+'-'+nmid+'-rot" class="ntp-num" placeholder="0" value="'+(rTot!==null&&rTot>0?rMC.m||'':'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="rot" oninput="saveNtpMC(this)">'
          +'<span class="ntp-unit">m</span>'
          +'<input type="number" id="ntp-cm-'+rid+'-'+nmid+'-rot" class="ntp-num" placeholder="0" value="'+(rTot!==null&&rTot>0?rMC.cm||'':'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="rot" oninput="saveNtpMC(this)">'
          +'<span class="ntp-unit">cm</span>'
          +(rTot!==null&&rTot>0?clrBtn('rot'):'');
       var blauInputs=bIsHIO
-        ?'<span style="font-size:11px;font-weight:700;color:var(--gold)">⛳ HIO'+(bHioP?' · '+bHioP:'')+'</span>'+clrBtn('blau')
+        ?'<span style="font-size:11px;font-weight:700;color:var(--gold)">⛳ Hole in One'+(bHioP?' · '+bHioP:'')+'</span>'+clrBtn('blau')
         :'<input type="number" id="ntp-m-'+rid+'-'+nmid+'-blau" class="ntp-num" placeholder="0" value="'+(bTot!==null&&bTot>0?bMC.m||'':'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="blau" oninput="saveNtpMC(this)">'
          +'<span class="ntp-unit">m</span>'
          +'<input type="number" id="ntp-cm-'+rid+'-'+nmid+'-blau" class="ntp-num" placeholder="0" value="'+(bTot!==null&&bTot>0?bMC.cm||'':'')+'" min="0" max="99" step="1" data-rid="'+rid+'" data-mid="'+nmid+'" data-team="blau" oninput="saveNtpMC(this)">'
