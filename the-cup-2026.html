@@ -1588,15 +1588,30 @@ function getPTot(){
   if(EXTRAS.ntp.enabled){
     (EXTRAS.ntp.rounds||[]).forEach(function(r){
       var w=getNtpRoundWin(r.id);var pts=getNtpPpr();
+      if(!w)return;
       var roundMs=MATCHES.filter(function(m){return m.day===r.day&&r.types.includes(m.type);});
-      var rP=[],bP=[];
-      roundMs.forEach(function(m){m.pA.concat(m.pB).forEach(function(p){
-        if(getTeam(p)==='rot'&&!rP.includes(p))rP.push(p);
-        else if(getTeam(p)==='blau'&&!bP.includes(p))bP.push(p);
-      });});
-      if(w==='rot'&&rP.length)rP.forEach(function(p){t[p]=(t[p]||0)+pts/rP.length;});
-      else if(w==='blau'&&bP.length)bP.forEach(function(p){t[p]=(t[p]||0)+pts/bP.length;});
-      else if(w==='tie'){rP.forEach(function(p){t[p]=(t[p]||0)+pts/2/rP.length;});bP.forEach(function(p){t[p]=(t[p]||0)+pts/2/bP.length;});}
+      // Find winning match per team (match with best/closest distance)
+      function bestMatch(team){
+        var best=Infinity,bm=null;
+        roundMs.forEach(function(m){
+          var md=(ntpR[r.id]&&ntpR[r.id][m.id])||{};
+          var v=md[team];
+          if(v!==undefined&&v!==null&&v<best){best=v;bm=m;}
+        });
+        return bm;
+      }
+      function addPts(team,share){
+        var m=bestMatch(team);if(!m)return;
+        // HIO: Punkte nur an den HIO-Spieler
+        var hio=hioList.find(function(x){return x.matchId===m.id&&x.hole===r.holeIndex+1&&x.team===team;});
+        if(hio){t[hio.player]=(t[hio.player]||0)+share;return;}
+        // NTP: Punkte nur an die Spieler des gewinnenden Matches
+        var pl=m.tA===team?m.pA:m.pB;
+        pl.forEach(function(p){t[p]=(t[p]||0)+share/pl.length;});
+      }
+      if(w==='rot'){addPts('rot',pts);}
+      else if(w==='blau'){addPts('blau',pts);}
+      else if(w==='tie'){addPts('rot',pts/2);addPts('blau',pts/2);}
     });
   }
   return t;
