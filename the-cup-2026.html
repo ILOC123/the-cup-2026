@@ -1787,7 +1787,7 @@ function renderSB(){
       if(md.rot!==undefined&&md.rot!==null){var v=md.rot;if(bestRot===null||v<bestRot){bestRot=v;bestRotMatch=m;}}
       if(md.blau!==undefined&&md.blau!==null){var v=md.blau;if(bestBlau===null||v<bestBlau){bestBlau=v;bestBlauMatch=m;}}
     });
-    function fmtDist(cm){if(cm===null||cm===undefined)return'—';if(cm===0)return'⛳ HIO';var mc=cmToMC(cm);return mc.m>0?mc.m+'m '+mc.cm+'cm':mc.cm+'cm';}
+    function fmtDist(cm){if(cm===null||cm===undefined)return'—';if(cm===0)return'⛳ Hole in One';var mc=cmToMC(cm);return mc.m>0?mc.m+'m '+mc.cm+'cm':mc.cm+'cm';}
     function getHIOPlayer(m,team){
       if(!m)return null;
       var h=hioList.find(function(x){return x.matchId===m.id&&x.hole===r.holeIndex+1&&x.team===team;});
