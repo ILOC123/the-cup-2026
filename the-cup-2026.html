@@ -2306,6 +2306,13 @@ function chS(mid,h,key,d2){
       hrEl.className='hr '+cls3;hrEl.textContent=txt3;
     }else{hrEl.className='hr';hrEl.textContent='—';}
   }
+  // Auto-Win: neu rendern wenn sich der Status ändert (Banner erscheint/verschwindet)
+  const x2=results[mid]||{};const hi2=getHoleIdx(m);
+  const awHl2=hi2.length-(x2.holesPlayed||0);
+  const awLead2=Math.abs((x2.rotUP||0)-(x2.blauUP||0));
+  const nowAutoWon=m.type!=='stabl'&&!x2.preset&&(x2.holesPlayed||0)>0&&awHl2>0&&awLead2>awHl2;
+  const bannerExists=!!document.querySelector('.autowon-banner');
+  if(nowAutoWon!==bannerExists){renderEntry(m);return;}
   renderSB();
 }
 // chSp: change score for a named player (2v2 stableford)
