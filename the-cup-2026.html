@@ -1099,17 +1099,19 @@ async function updateWxInSB(){
         ||(d.next_6_hours&&d.next_6_hours.summary&&d.next_6_hours.summary.symbol_code);
       return wxFormat(d,symbol);
     }
-    var hasTeetime=false;
+    // Per Gruppe anzeigen wenn Teetimes konfiguriert
     ['t1','t2'].forEach(function(slot){
       var tStr=ttObj&&ttObj[slot];if(!tStr)return;
-      hasTeetime=true;
       var hour=parseInt(tStr.split(':')[0],10);
       var wx=wxEntry(hour);if(!wx)return;
       var el=document.getElementById('lb-wx-'+day+'-'+slot);
       if(el){el.textContent='· '+wx;el.style.color='var(--grey-l)';}
     });
-    // Fallback: kein Teetime konfiguriert → im Day-Header anzeigen
-    if(!hasTeetime){var wx=wxEntry(undefined);if(wx&&lb){lb.textContent=wx;lb.style.color='var(--grey-l)';}}
+    // Immer im Day-Header anzeigen (erste Teetime oder 12:00 als Fallback)
+    var t1Str=ttObj&&ttObj.t1;
+    var summaryHour=t1Str?parseInt(t1Str.split(':')[0],10):undefined;
+    var wxSummary=wxEntry(summaryHour);
+    if(wxSummary&&lb){lb.textContent=wxSummary;lb.style.color='var(--grey-l)';}
   });
 }
 
@@ -1356,7 +1358,7 @@ function renderLiveBoard(){
           <div style="font-size:22px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase;margin-bottom:4px">${day==='Samstag'?'🏆 ':''}${day}</div>
           <div style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap">
             ${scHtml}${wp}
-            <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)"></span>
+            <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)">⏳</span>
           </div>
         </div>`;
       })()}
