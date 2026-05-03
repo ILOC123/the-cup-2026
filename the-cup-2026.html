@@ -1183,7 +1183,7 @@ function teamStrokes(m){
 }
 function stblPts(g,par,s){return Math.max(0,2+par-g+s);}
 function scCls(g,par,s){const d=par-(g-s);if(d>=2)return'eagle';if(d===1)return'birdie';if(d===0)return'par';if(d===-1)return'bogey';if(d===-2)return'double';return'worse';}
-function fmt(v){return Number(v||0).toFixed(1);}
+function fmt(v){return String(parseFloat(Number(v||0).toFixed(2)));}
 // ─── NTP HELPERS (Round-based) ─────────────────────────────
 // NTP gilt pro Runde (Tag+Typ), nicht pro einzelnem Match
 // Nicht gültig für: einzel, duebler
