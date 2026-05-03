@@ -1737,7 +1737,7 @@ function buildScoreBar(rot,blau,tot){
 
   // NTP line
   const totalLine='<div style="font-size:9px;color:var(--grey);text-align:center;margin-top:3px">'
-    +'Sieg bei <strong style="color:var(--gold)">'+fmt(WIN_AT+0.5)+'</strong> von '
+    +'Sieg bei <strong style="color:var(--gold)">'+fmt(Math.floor(WIN_AT*2+1)/2)+'</strong> von '
     +fmt(TOTAL_PTS)+' möglichen Punkten'
     +(TOTAL_PTS!==21?' <span style="color:var(--gold)">★ inkl. Zusatzspiele</span>':'')
     +'</div>';
@@ -1767,7 +1767,7 @@ function buildScoreBar(rot,blau,tot){
     +'<div style="position:absolute;left:'+winMarkPct+'%;top:-5px;bottom:-5px;width:2px;background:var(--gold);border-radius:2px;z-index:2">'
     +'<div style="position:absolute;top:-42px;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap">'
     +'<div style="font-size:20px;line-height:1.1">🏆</div>'
-    +'<div style="font-size:11px;color:var(--gold);font-weight:800;line-height:1.2;letter-spacing:0.5px">'+fmt(WIN_AT+0.5)+'</div>'
+    +'<div style="font-size:11px;color:var(--gold);font-weight:800;line-height:1.2;letter-spacing:0.5px">'+fmt(Math.floor(WIN_AT*2+1)/2)+'</div>'
     +'</div>'
     +'</div>'
     +'</div>'
