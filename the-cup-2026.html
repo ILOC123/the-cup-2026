@@ -1079,8 +1079,7 @@ function wxForDate(ts,date,hour){
 async function fetchWx(){
   if(wxCache&&Date.now()-wxFetchedAt<30*60*1000)return wxCache;
   try{
-    const r=await fetch('https://api.met.no/weatherapi/locationforecast/2.0/compact?lat='+WX_LAT+'&lon='+WX_LON,
-      {headers:{'User-Agent':'TheCup2026/1.0 golf-app'}});
+    const r=await fetch('https://api.met.no/weatherapi/locationforecast/2.0/compact?lat='+WX_LAT+'&lon='+WX_LON);
     if(!r.ok)return null;
     wxCache=await r.json();wxFetchedAt=Date.now();return wxCache;
   }catch(e){return null;}
