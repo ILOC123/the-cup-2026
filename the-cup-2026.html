@@ -1029,6 +1029,38 @@ function wxEmoji(s){
   if(s.includes('snow'))return'❄️';
   return'🌡️';
 }
+function wxDesc(s){
+  if(!s)return'';
+  if(s.includes('clearsky'))return'Klar';
+  if(s.includes('fair'))return'Überwiegend klar';
+  if(s.includes('partlycloudy'))return'Leicht bewölkt';
+  if(s.includes('cloudy'))return'Bewölkt';
+  if(s.includes('fog'))return'Nebel';
+  if(s.includes('thunder')&&s.includes('heavy'))return'Schwere Gewitter';
+  if(s.includes('thunder'))return'Gewitter';
+  if(s.includes('heavyrain'))return'Starkregen';
+  if(s.includes('lightrain'))return'Leichter Regen';
+  if(s.includes('rain')&&s.includes('shower'))return'Regenschauer';
+  if(s.includes('rain'))return'Regen';
+  if(s.includes('sleet'))return'Schneeregen';
+  if(s.includes('snow')&&s.includes('heavy'))return'Starker Schneefall';
+  if(s.includes('snow'))return'Schneefall';
+  return'';
+}
+function wxFormat(d,symbol){
+  var emoji=wxEmoji(symbol);
+  var desc=wxDesc(symbol);
+  var temp=d.instant&&d.instant.details&&d.instant.details.air_temperature;
+  var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
+  var precip=(d.next_1_hours&&d.next_1_hours.details&&d.next_1_hours.details.precipitation_amount)
+    ||(d.next_6_hours&&d.next_6_hours.details&&d.next_6_hours.details.precipitation_amount);
+  var parts=[];
+  if(desc)parts.push(emoji+' '+desc);else parts.push(emoji);
+  if(temp!==undefined)parts.push(Math.round(temp)+'°C');
+  if(wind!==undefined)parts.push('💨 '+Math.round(wind*3.6)+' km/h');
+  if(precip!==undefined&&precip>0)parts.push('🌧 '+precip.toFixed(1)+' mm');
+  return parts.join(' · ');
+}
 function wxDayDate(dayName){
   const map={Donnerstag:4,Freitag:5,Samstag:6};
   const target=map[dayName];if(target===undefined)return null;
@@ -1057,19 +1089,27 @@ async function updateWxInSB(){
   const data=await fetchWx();if(!data)return;
   const ts=data.properties&&data.properties.timeseries;if(!ts)return;
   ['Donnerstag','Freitag','Samstag'].forEach(function(day){
-    var el=document.getElementById('wx-'+day);if(!el)return;
     var date=wxDayDate(day);if(!date)return;
     var ttObj=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:null;
-    var ttHour=ttObj&&ttObj.t1?parseInt(ttObj.t1.split(':')[0],10):undefined;
-    var entry=wxForDate(ts,date,ttHour);if(!entry)return;
-    var d=entry.data;if(!d)return;
-    var temp=d.instant&&d.instant.details&&d.instant.details.air_temperature;
-    var symbol=(d.next_1_hours&&d.next_1_hours.summary&&d.next_1_hours.summary.symbol_code)
-      ||(d.next_6_hours&&d.next_6_hours.summary&&d.next_6_hours.summary.symbol_code);
-    var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
-    var wxText=wxEmoji(symbol)+(temp!==undefined?' '+Math.round(temp)+'°C':'')+(wind!==undefined?' · 💨'+Math.round(wind)+'m/s':'');
-    el.textContent='Wetter: '+wxText;el.style.color='var(--grey-l)';
-    var lb=document.getElementById('lb-wx-'+day);if(lb){lb.textContent=wxText;lb.style.color='var(--grey-l)';}
+    var lb=document.getElementById('lb-wx-'+day);if(!lb)return;
+    function wxEntry(hour){
+      var entry=wxForDate(ts,date,hour);if(!entry)return null;
+      var d=entry.data;if(!d)return null;
+      var symbol=(d.next_1_hours&&d.next_1_hours.summary&&d.next_1_hours.summary.symbol_code)
+        ||(d.next_6_hours&&d.next_6_hours.summary&&d.next_6_hours.summary.symbol_code);
+      return wxFormat(d,symbol);
+    }
+    var hasTeetime=false;
+    ['t1','t2'].forEach(function(slot){
+      var tStr=ttObj&&ttObj[slot];if(!tStr)return;
+      hasTeetime=true;
+      var hour=parseInt(tStr.split(':')[0],10);
+      var wx=wxEntry(hour);if(!wx)return;
+      var el=document.getElementById('lb-wx-'+day+'-'+slot);
+      if(el){el.textContent='· '+wx;el.style.color='var(--grey-l)';}
+    });
+    // Fallback: kein Teetime konfiguriert → im Day-Header anzeigen
+    if(!hasTeetime){var wx=wxEntry(undefined);if(wx&&lb){lb.textContent=wx;lb.style.color='var(--grey-l)';}}
   });
 }
 
@@ -1294,12 +1334,16 @@ function renderLiveBoard(){
     const groups=[...new Set(dm.map(m=>m.type))].sort((a,b)=>(fmtOrder.indexOf(a)<0?99:fmtOrder.indexOf(a))-(fmtOrder.indexOf(b)<0?99:fmtOrder.indexOf(b)));
     const tt=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:null;
     const ttSlots=[tt&&tt.t1?`🕗 ${tt.t1} Uhr`:'',tt&&tt.t2?`🕗 ${tt.t2} Uhr`:''];
+    const ttKeys=['t1','t2'];
     const groupsHtml=groups.map((type,gi)=>{
       const gm=dm.filter(m=>m.type===type);
+      const ttKey=ttKeys[gi];
       const ttTag=ttSlots[gi]?`<span style="font-size:11px;color:var(--grey-l);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px">${ttSlots[gi]}</span>`:'';
       const cname=gm[0]&&COURSES[gm[0].ckey]?`<span style="font-size:11px;color:var(--grey);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px">· ${COURSES[gm[0].ckey].name}</span>`:'';
+      const wxLine=ttSlots[gi]?`<div id="lb-wx-${day}-${ttKey}" style="font-size:11px;color:var(--grey-l);text-align:center;margin:-2px 0 8px"></div>`:'';
       return`<div style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}${ttTag}${cname}</div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:4px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}${ttTag}${cname}</div>
+        ${wxLine}
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px">${gm.map(mkCard).join('')}</div>
       </div>`;
     }).join('');
@@ -1312,7 +1356,7 @@ function renderLiveBoard(){
           <div style="font-size:22px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase;margin-bottom:4px">${day==='Samstag'?'🏆 ':''}${day}</div>
           <div style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap">
             ${scHtml}${wp}
-            <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)">⏳</span>
+            <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)"></span>
           </div>
         </div>`;
       })()}
