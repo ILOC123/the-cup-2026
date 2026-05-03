@@ -1339,10 +1339,11 @@ function renderLiveBoard(){
       const gm=dm.filter(m=>m.type===type);
       const ttKey=ttKeys[gi];
       const ttTag=ttSlots[gi]?`<span style="font-size:11px;color:var(--grey-l);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px">${ttSlots[gi]}</span>`:'';
-      const wxTag=ttSlots[gi]?`<span id="lb-wx-${day}-${ttKey}" style="font-size:11px;color:var(--grey);font-weight:400;letter-spacing:0;text-transform:none;margin-left:4px"></span>`:'';
       const cname=gm[0]&&COURSES[gm[0].ckey]?`<span style="font-size:11px;color:var(--grey);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px">· ${COURSES[gm[0].ckey].name}</span>`:'';
+      const wxLine=ttSlots[gi]?`<div id="lb-wx-${day}-${ttKey}" style="font-size:11px;color:var(--grey-l);text-align:center;margin:-2px 0 8px"></div>`:'';
       return`<div style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}${ttTag}${wxTag}${cname}</div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:4px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}${ttTag}${cname}</div>
+        ${wxLine}
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px">${gm.map(mkCard).join('')}</div>
       </div>`;
     }).join('');
