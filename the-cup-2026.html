@@ -255,6 +255,8 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 .lr.cur{background:rgba(201,150,10,0.06);}
 .lr.dn{opacity:0.6;}
 .lr.ntp{background:rgba(231,76,60,0.04);}
+.lr.not-played{opacity:0.25;pointer-events:none;}
+.autowon-banner{background:rgba(39,174,96,0.12);border:1.5px solid rgba(39,174,96,0.4);border-radius:10px;margin:10px 12px 0;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;}
 .lnum{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--white);text-align:center;}
 .lpar{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--grey-l);text-align:center;}
 .lstrok{font-size:14px;font-weight:700;text-align:center;line-height:1.3;color:var(--gold);}
@@ -1182,6 +1184,7 @@ function teamStrokes(m){
 function stblPts(g,par,s){return Math.max(0,2+par-g+s);}
 function scCls(g,par,s){const d=par-(g-s);if(d>=2)return'eagle';if(d===1)return'birdie';if(d===0)return'par';if(d===-1)return'bogey';if(d===-2)return'double';return'worse';}
 function fmt(v){return Number(v||0).toFixed(1);}
+function fmtPts(v){return String(parseFloat(Number(v||0).toFixed(2)));}
 // ─── NTP HELPERS (Round-based) ─────────────────────────────
 // NTP gilt pro Runde (Tag+Typ), nicht pro einzelnem Match
 // Nicht gültig für: einzel, duebler
@@ -1565,7 +1568,7 @@ function recalcM(m){
     results[m.id]={rotUP:m.tA==='rot'?ptA:ptB,blauUP:m.tA==='rot'?ptB:ptA,holesPlayed:hp,rotPts:rP,blauPts:bP,preset:false,isStabl:true};return;
   }
   const ts=teamStrokes(m);let rUP=0,bUP=0,hp=0;
-  hi.forEach(h=>{const hd=s[h]||{};if(!(hd[kA]>0)||!(hd[kB]>0))return;hp++;const t=ts.ph[h]||0;const nA=hd[kA]-(t>0?t:0);const nB=hd[kB]-(t<0?Math.abs(t):0);const tAr=m.tA==='rot';if(nA<nB){if(tAr)rUP++;else bUP++;}else if(nB<nA){if(tAr)bUP++;else rUP++;}});
+  hi.forEach(h=>{const hd=s[h]||{};const vA=hd[kA]||0,vB=hd[kB]||0;const hioA=vA===1&&vB===0,hioB=vB===1&&vA===0;if(!(vA>0&&vB>0)&&!hioA&&!hioB)return;hp++;const t=ts.ph[h]||0;const effA=vA>0?vA:Infinity,effB=vB>0?vB:Infinity;const nA=effA-(t>0?t:0);const nB=effB-(t<0?Math.abs(t):0);const tAr=m.tA==='rot';if(nA<nB){if(tAr)rUP++;else bUP++;}else if(nB<nA){if(tAr)bUP++;else rUP++;}});
   const hl=hi.length-hp;let rP=0,bP=0;if(hl===0||Math.abs(rUP-bUP)>hl){if(rUP>bUP)rP=1;else if(bUP>rUP)bP=1;else{rP=0.5;bP=0.5;}}
   results[m.id]={rotUP:rUP,blauUP:bUP,holesPlayed:hp,rotPts:rP,blauPts:bP,preset:false};
 }
@@ -1734,7 +1737,7 @@ function buildScoreBar(rot,blau,tot){
 
   // NTP line
   const totalLine='<div style="font-size:9px;color:var(--grey);text-align:center;margin-top:3px">'
-    +'Sieg bei <strong style="color:var(--gold)">'+fmt(WIN_AT+0.5)+'</strong> von '
+    +'Sieg bei <strong style="color:var(--gold)">'+fmt(Math.floor(WIN_AT*2+1)/2)+'</strong> von '
     +fmt(TOTAL_PTS)+' möglichen Punkten'
     +(TOTAL_PTS!==21?' <span style="color:var(--gold)">★ inkl. Zusatzspiele</span>':'')
     +'</div>';
@@ -1764,7 +1767,7 @@ function buildScoreBar(rot,blau,tot){
     +'<div style="position:absolute;left:'+winMarkPct+'%;top:-5px;bottom:-5px;width:2px;background:var(--gold);border-radius:2px;z-index:2">'
     +'<div style="position:absolute;top:-42px;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap">'
     +'<div style="font-size:20px;line-height:1.1">🏆</div>'
-    +'<div style="font-size:11px;color:var(--gold);font-weight:800;line-height:1.2;letter-spacing:0.5px">'+fmt(WIN_AT+0.5)+'</div>'
+    +'<div style="font-size:11px;color:var(--gold);font-weight:800;line-height:1.2;letter-spacing:0.5px">'+fmt(Math.floor(WIN_AT*2+1)/2)+'</div>'
     +'</div>'
     +'</div>'
     +'</div>'
@@ -1853,7 +1856,7 @@ function renderSB(){
     return '<div class="pli '+rowCls+' '+sepCls+' '+teamCls+'">'+rnk
       +'<div class="pavatar '+avCls+'">'+initials+'</div>'
       +'<div class="pi2"><div class="n">'+p.n+'</div><div class="t">'+(p.team==='rot'?'Team Rot':'Team Blau')+' · HCP '+p.hcp+'</div></div>'
-      +'<div class="pp '+ppCls+'">'+fmt(pt[p.n]||0)+'</div>'
+      +'<div class="pp '+ppCls+'">'+fmtPts(pt[p.n]||0)+'</div>'
       +'</div>';
   }).join('')}
   ${hioList.length>0?`<div class="stit" style="margin-top:16px">⛳ HOLE IN ONE</div><div style="padding:4px 0 8px">${hioList.map(function(x){var tc=x.team==='rot'?'var(--rot-m)':'var(--blau-m)';var te=x.team==='rot'?'🔴':'🔵';return'<div class="hio-sb-row"><span style="font-size:22px">⛳</span><div style="flex:1"><div style="font-weight:700;color:'+tc+'">'+te+' '+x.player+'</div><div style="font-size:11px;color:var(--grey)">Loch '+x.hole+' · '+x.day+'</div></div><span style="font-size:20px">🏆</span></div>';}).join('')}</div>`:''}`;
@@ -1952,6 +1955,13 @@ function renderEntry(m){
   let stxt='TIE',scls='tie';
   if(isStabl){const ru=x.rotUP||0,bu=x.blauUP||0;if(ru>bu){stxt=ru+'P';scls='rl';}else if(bu>ru){stxt=bu+'P';scls='bl';}}
   else{const ru=x.rotUP||0,bu=x.blauUP||0;if(ru>bu){stxt=(ru-bu)+' UP';scls='rl';}else if(bu>ru){stxt=(bu-ru)+' UP';scls='bl';}}
+  const awHp=x.holesPlayed||0,awHl=hi.length-awHp;
+  const awRot=x.rotUP||0,awBlau=x.blauUP||0,awLead=Math.abs(awRot-awBlau);
+  const autoWon=!isStabl&&!x.preset&&awHp>0&&awHl>0&&awLead>awHl;
+  const autoWonTeam=autoWon?(awRot>awBlau?'rot':'blau'):null;
+  const autoWonBanner=autoWon
+    ?'<div class="autowon-banner"><span style="font-size:16px">'+(autoWonTeam==='rot'?'🔴':'🔵')+'</span><div><strong style="color:'+(autoWonTeam==='rot'?'var(--rot-m)':'var(--blau-m)')+';">'+(autoWonTeam==='rot'?'Rot':'Blau')+' gewinnt</strong><span style="color:var(--grey-l);margin-left:6px">'+awLead+'&'+awHl+'</span></div></div>'
+    :'';
   let info='';
   if(isBB&&ts){const wt=ts.weakerIsA?(m.tA==='rot'?'🔴 Rot':'🔵 Blau'):(m.tB==='rot'?'🔴 Rot':'🔵 Blau');
     const wColBB=ts.weakerIsA?(m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'):(m.tB==='rot'?'var(--rot-m)':'var(--blau-m)');
@@ -2025,8 +2035,10 @@ function renderEntry(m){
           ?'<span style="background:rgba(201,150,10,0.25);color:var(--gold);font-size:9px;font-weight:700;padding:1px 5px;border-radius:5px;margin-left:4px">+'+stk2+'●</span>'
           :'';
         var safeN2=pName2.replace(/[^a-zA-Z0-9]/g,'_');
-        // ptsBadge nur für Live-Update ID, nicht anzeigen (Punkte im fixierten Strip)
-        var ptsBadge2='<span id="sp-'+mid2+'-'+hole2+'-'+safeN2+'" style="display:none"></span>';
+        var ptsNow=v2>0?stblPts(v2,par,stk2):null;
+        var ptsTxt=ptsNow!==null?ptsNow+'P':'—';
+        var ptsCol=ptsNow===null?'rgba(255,255,255,0.18)':ptsNow>0?'var(--gold)':'rgba(255,255,255,0.3)';
+        var ptsBadge2='<div id="sp-'+mid2+'-'+hole2+'-'+safeN2+'" style="font-size:11px;font-weight:700;text-align:center;margin-top:5px;color:'+ptsCol+'">'+ptsTxt+'</div>';
         return '<div class="stbl-card '+teamCls2+'">'
           +'<div class="stbl-card-name">'+pName2+stkBadge2+'</div>'
           +'<div class="stbl-card-inp">'
@@ -2062,7 +2074,8 @@ function renderEntry(m){
         }
       }
       else{const tH=isBB?(ts?.ph[h]||0):(tsEz?.ph[h]||0);const nA=vA-(tH>0?tH:0);const nB=vB-(tH<0?Math.abs(tH):0);const tAr=m.tA==='rot';let cls='tie',txt='TIE';if(nA<nB){cls=tAr?'rl':'bl';txt=tAr?'🔴':'🔵';}else if(nB<nA){cls=tAr?'bl':'rl';txt=tAr?'🔵':'🔴';}rc=`<div class="hr ${cls}" id="hr-${m.id}-${h}">${txt}</div>`;}
-    }else if(isStabl)rc=`<div style="display:flex;flex-direction:column;gap:1px"><div class="spb zero">—</div><div class="spb zero">—</div></div>`;
+    }else if(!isStabl&&(vA===1||vB===1)){const tH=isBB?(ts?.ph[h]||0):(tsEz?.ph[h]||0);const effA=vA>0?vA-(tH>0?tH:0):Infinity;const effB=vB>0?vB-(tH<0?Math.abs(tH):0):Infinity;const tAr=m.tA==='rot';let cls='tie',txt='TIE';if(effA<effB){cls=tAr?'rl':'bl';txt=tAr?'🔴':'🔵';}else if(effB<effA){cls=tAr?'bl':'rl';txt=tAr?'🔵':'🔴';}rc=`<div class="hr ${cls}" id="hr-${m.id}-${h}">${txt}</div>`;}
+    else if(isStabl)rc=`<div style="display:flex;flex-direction:column;gap:1px"><div class="spb zero">—</div><div class="spb zero">—</div></div>`;
     const la=c.laenge?`<div style="font-size:8px;color:rgba(255,255,255,0.25)">${typeof c.laenge[h]==='string'?c.laenge[h]:c.laenge[h]+'m'}</div>`:'';
     const isNtp=!!ntpG2;
     if(isStabl2v2){
@@ -2097,7 +2110,7 @@ function renderEntry(m){
       const netParDisp=(stFA>0||stFB>0)
         ?`<span style="font-size:10px;color:var(--grey-l)">${par}</span><span style="font-size:9px;color:rgba(255,255,255,0.3)">→</span><span style="font-size:11px;font-weight:700;color:var(--gold)">${Math.max(netParA,netParB)}</span>`
         :`${par}`;
-      rows+=`<div class="lr ${isNtp?'ntp':done?'dn':'cur'}" style="grid-template-columns:${gc};gap:4px;padding:4px 6px;">
+      rows+=`<div class="lr ${done?'dn':autoWon?'not-played':isNtp?'ntp':'cur'}" style="grid-template-columns:${gc};gap:4px;padding:4px 6px;">
         <div class="lnum">${h+1}${isNtp?'<span style="font-size:8px;color:var(--gold)">📍</span>':''}${la}</div>
         <div class="lpar">${netParDisp}</div><div style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.25);text-align:center">${vg}</div>
         <div>${sd}</div><div></div>${allInputs}${rc}
@@ -2141,7 +2154,7 @@ function renderEntry(m){
          +'<span class="ntp-unit">cm</span>'
          +(bTot!==null&&bTot>0?clrBtn('blau'):'');
       rows+='<div class="ntp-row">'
-        +'<span class="ntp-lbl">📍 '+ntpRound.label+' &nbsp;·&nbsp; Bester Schuss gewinnt Runde (+'+fmt(getNtpPpr())+' Pkt)</span>'
+        +'<span class="ntp-lbl">📍 '+ntpRound.label.toUpperCase()+' &nbsp;·&nbsp; BESTER SCHLAG PRO RUNDE ('+fmt(getNtpPpr())+' Punkte)</span>'
         +'<div class="ntp-teams">'
         +'<div class="ntp-team rot-t"><div class="ntp-team-lbl">🔴 Rot</div><div class="ntp-mc">'+rotInputs+'</div></div>'
         +'<div class="ntp-team blau-t"><div class="ntp-team-lbl">🔵 Blau</div><div class="ntp-mc">'+blauInputs+'</div></div>'
@@ -2167,7 +2180,7 @@ function renderEntry(m){
   const guestBanner=isGuest?'<div style="background:rgba(201,150,10,0.12);border:1.5px solid rgba(201,150,10,0.35);border-radius:10px;margin:10px 12px 0;padding:9px 14px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gold)">👁 <span><strong>Zuschauer-Modus</strong> – Nur Anzeige, keine Eingaben möglich</span></div>':'';
   const lockedBanner=m.locked&&!isGuest?'<div class="locked-banner">🔒 <span><strong>Match gesperrt</strong> – Scores können nicht mehr geändert werden</span></div>':'';
   if(isGuest)el.classList.add('guest-mode'); else el.classList.remove('guest-mode');
-  el.innerHTML=guestBanner+lockedBanner+`<div class="seh"><button class="bk" onclick="back()">‹ Zurück</button>
+  el.innerHTML=guestBanner+lockedBanner+autoWonBanner+`<div class="seh"><button class="bk" onclick="back()">‹ Zurück</button>
     <div><div class="mt">${tAc}${m.pA.join(' & ')} vs ${tBc}${m.pB.join(' & ')}</div>
     <div class="mf">${{bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',duebler:'Dübler',einzel:'Einzel'}[m.type]||m.type} · ${c.name} · ${nL}</div></div>
   </div>
@@ -2287,16 +2300,24 @@ function chS(mid,h,key,d2){
     const hd3=scores[mid][h]||{};
     const vA3=hd3[m.type==='bb'||m.type==='duebler'||m.type==='greensome'?'__A':m.pA[0]]||0;
     const vB3=hd3[m.type==='bb'||m.type==='duebler'||m.type==='greensome'?'__B':m.pB[0]]||0;
-    if(vA3>0&&vB3>0){
+    if(vA3>0&&vB3>0||(vA3===1||vB3===1)){
       const tH3=ts3.ph[h]||0;
-      const nA3=vA3-(tH3>0?tH3:0);const nB3=vB3-(tH3<0?Math.abs(tH3):0);
+      const effA3=vA3>0?vA3-(tH3>0?tH3:0):Infinity;
+      const effB3=vB3>0?vB3-(tH3<0?Math.abs(tH3):0):Infinity;
       const tAr3=m.tA==='rot';
       let cls3='tie',txt3='TIE';
-      if(nA3<nB3){cls3=tAr3?'rl':'bl';txt3=tAr3?'🔴':'🔵';}
-      else if(nB3<nA3){cls3=tAr3?'bl':'rl';txt3=tAr3?'🔵':'🔴';}
+      if(effA3<effB3){cls3=tAr3?'rl':'bl';txt3=tAr3?'🔴':'🔵';}
+      else if(effB3<effA3){cls3=tAr3?'bl':'rl';txt3=tAr3?'🔵':'🔴';}
       hrEl.className='hr '+cls3;hrEl.textContent=txt3;
     }else{hrEl.className='hr';hrEl.textContent='—';}
   }
+  // Auto-Win: neu rendern wenn sich der Status ändert (Banner erscheint/verschwindet)
+  const x2=results[mid]||{};const hi2=getHoleIdx(m);
+  const awHl2=hi2.length-(x2.holesPlayed||0);
+  const awLead2=Math.abs((x2.rotUP||0)-(x2.blauUP||0));
+  const nowAutoWon=m.type!=='stabl'&&!x2.preset&&(x2.holesPlayed||0)>0&&awHl2>0&&awLead2>awHl2;
+  const bannerExists=!!document.querySelector('.autowon-banner');
+  if(nowAutoWon!==bannerExists){renderEntry(m);return;}
   renderSB();
 }
 // chSp: change score for a named player (2v2 stableford)
@@ -2325,13 +2346,23 @@ function chSp(mid,h,pName,d2){
     const strok2=playerStrokes(pName,m.ckey,hi);
     const pts=stblPts(nv,c.par[h],strok2[h]||0);
     ptsBadgeEl.textContent=pts+'P';
-    ptsBadgeEl.parentElement.style.display='';
+    ptsBadgeEl.style.color=pts>0?'var(--gold)':'rgba(255,255,255,0.3)';
   }
   recalcM(m);saveData();
-  const x=results[mid]||{};
+  // Live-Teilsumme: alle bereits eingetragenen Scores zählen (nicht erst wenn alle 4 fertig)
+  var liveRot=0,liveBlau=0;
+  var stPa=m.pA.map(function(p){return playerStrokes(p,m.ckey,hi);});
+  var stPb=m.pB.map(function(p){return playerStrokes(p,m.ckey,hi);});
+  hi.forEach(function(h2){
+    var hd2=scores[mid][h2]||{};
+    var tA2=m.pA.reduce(function(s,p,i){var v=hd2[p]||0;return v>0?s+stblPts(v,c.par[h2],stPa[i][h2]||0):s;},0);
+    var tB2=m.pB.reduce(function(s,p,i){var v=hd2[p]||0;return v>0?s+stblPts(v,c.par[h2],stPb[i][h2]||0):s;},0);
+    liveRot+=m.tA==='rot'?tA2:tB2;
+    liveBlau+=m.tA==='rot'?tB2:tA2;
+  });
   const lru2=document.getElementById('lru');const lbu2=document.getElementById('lbu');
-  if(lru2)lru2.textContent=(x.rotUP||0)+'P';
-  if(lbu2)lbu2.textContent=(x.blauUP||0)+'P';
+  if(lru2)lru2.textContent=liveRot+'P';
+  if(lbu2)lbu2.textContent=liveBlau+'P';
   renderSB();
 }
 
@@ -2340,7 +2371,7 @@ function renderSP(){
   document.getElementById('sp-c').innerHTML='<div style="padding:12px 0 0">'+
     [...PL.rot.map(p=>({...p,team:'rot'})),...PL.blau.map(p=>({...p,team:'blau'}))]
     .map(p=>({...p,pts:pt[p.n]||0})).sort((a,b2)=>b2.pts-a.pts).map(p=>{
-      return`<div class="spc"><div class="sph"><div class="spav ${p.team}">${p.n.slice(0,2).toUpperCase()}</div><div><div class="spnm">${p.n}</div><div class="sphcp">${p.team==='rot'?'Team Rot':'Team Blau'} · HCP ${p.hcp}</div></div><div class="sptot ${p.team}">${fmt(pt[p.n]||0)}</div></div></div>`;
+      return`<div class="spc"><div class="sph"><div class="spav ${p.team}">${p.n.slice(0,2).toUpperCase()}</div><div><div class="spnm">${p.n}</div><div class="sphcp">${p.team==='rot'?'Team Rot':'Team Blau'} · HCP ${p.hcp}</div></div><div class="sptot ${p.team}">${fmtPts(pt[p.n]||0)}</div></div></div>`;
     }).join('')+'</div>';
 }
 
@@ -4028,7 +4059,18 @@ function confirmHIO(mid,hole,player,team){
   var entry={id:'hio_'+Date.now(),player:player,team:team,hole:hole,matchId:mid,day:m?m.day:'',ts:Date.now()};
   hioList.push(entry);
   localStorage.setItem('c26hio',JSON.stringify(hioList));
-  // HIO auf NTP-Loch → NTP automatisch für dieses Team gewinnen (Distanz = 1cm)
+  // HIO: Score automatisch auf 1 setzen → Loch ist gewonnen
+  if(m){
+    var hIdx=hole-1;
+    var isBBtype=m.type==='bb'||m.type==='duebler'||m.type==='greensome';
+    var isTeamA=m.tA===team;
+    var scoreKey=isBBtype?(isTeamA?'__A':'__B'):player;
+    if(!scores[mid])scores[mid]={};
+    if(!scores[mid][hIdx])scores[mid][hIdx]={};
+    scores[mid][hIdx][scoreKey]=1;
+    recalcM(m);
+  }
+  // HIO auf NTP-Loch → NTP automatisch für dieses Team gewinnen (Distanz = 0cm)
   if(m&&EXTRAS.ntp.enabled){
     var hIdx=hole-1;
     (EXTRAS.ntp.rounds||[]).forEach(function(r){
