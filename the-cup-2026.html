@@ -1029,6 +1029,38 @@ function wxEmoji(s){
   if(s.includes('snow'))return'❄️';
   return'🌡️';
 }
+function wxDesc(s){
+  if(!s)return'';
+  if(s.includes('clearsky'))return'Klar';
+  if(s.includes('fair'))return'Überwiegend klar';
+  if(s.includes('partlycloudy'))return'Leicht bewölkt';
+  if(s.includes('cloudy'))return'Bewölkt';
+  if(s.includes('fog'))return'Nebel';
+  if(s.includes('thunder')&&s.includes('heavy'))return'Schwere Gewitter';
+  if(s.includes('thunder'))return'Gewitter';
+  if(s.includes('heavyrain'))return'Starkregen';
+  if(s.includes('lightrain'))return'Leichter Regen';
+  if(s.includes('rain')&&s.includes('shower'))return'Regenschauer';
+  if(s.includes('rain'))return'Regen';
+  if(s.includes('sleet'))return'Schneeregen';
+  if(s.includes('snow')&&s.includes('heavy'))return'Starker Schneefall';
+  if(s.includes('snow'))return'Schneefall';
+  return'';
+}
+function wxFormat(d,symbol){
+  var emoji=wxEmoji(symbol);
+  var desc=wxDesc(symbol);
+  var temp=d.instant&&d.instant.details&&d.instant.details.air_temperature;
+  var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
+  var precip=(d.next_1_hours&&d.next_1_hours.details&&d.next_1_hours.details.precipitation_amount)
+    ||(d.next_6_hours&&d.next_6_hours.details&&d.next_6_hours.details.precipitation_amount);
+  var parts=[];
+  if(desc)parts.push(emoji+' '+desc);else parts.push(emoji);
+  if(temp!==undefined)parts.push(Math.round(temp)+'°C');
+  if(wind!==undefined)parts.push('💨 '+Math.round(wind*3.6)+' km/h');
+  if(precip!==undefined&&precip>0)parts.push('🌧 '+precip.toFixed(1)+' mm');
+  return parts.join(' · ');
+}
 function wxDayDate(dayName){
   const map={Donnerstag:4,Freitag:5,Samstag:6};
   const target=map[dayName];if(target===undefined)return null;
@@ -1063,11 +1095,9 @@ async function updateWxInSB(){
     function wxEntry(hour){
       var entry=wxForDate(ts,date,hour);if(!entry)return null;
       var d=entry.data;if(!d)return null;
-      var temp=d.instant&&d.instant.details&&d.instant.details.air_temperature;
       var symbol=(d.next_1_hours&&d.next_1_hours.summary&&d.next_1_hours.summary.symbol_code)
         ||(d.next_6_hours&&d.next_6_hours.summary&&d.next_6_hours.summary.symbol_code);
-      var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
-      return wxEmoji(symbol)+(temp!==undefined?' '+Math.round(temp)+'°C':'')+(wind!==undefined?' 💨'+Math.round(wind)+'m/s':'');
+      return wxFormat(d,symbol);
     }
     var hasTeetime=false;
     ['t1','t2'].forEach(function(slot){
