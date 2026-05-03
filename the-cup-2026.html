@@ -1069,16 +1069,17 @@ async function updateWxInSB(){
       var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
       return wxEmoji(symbol)+(temp!==undefined?' '+Math.round(temp)+'°C':'')+(wind!==undefined?' 💨'+Math.round(wind)+'m/s':'');
     }
-    var parts=[];
+    var hasTeetime=false;
     ['t1','t2'].forEach(function(slot){
       var tStr=ttObj&&ttObj[slot];if(!tStr)return;
+      hasTeetime=true;
       var hour=parseInt(tStr.split(':')[0],10);
       var wx=wxEntry(hour);if(!wx)return;
-      parts.push(tStr+' Uhr '+wx);
+      var el=document.getElementById('lb-wx-'+day+'-'+slot);
+      if(el){el.textContent='· '+wx;el.style.color='var(--grey-l)';}
     });
-    if(!parts.length){var wx=wxEntry(undefined);if(wx)parts.push(wx);}
-    if(!parts.length)return;
-    lb.textContent=parts.join('  ·  ');lb.style.color='var(--grey-l)';
+    // Fallback: kein Teetime konfiguriert → im Day-Header anzeigen
+    if(!hasTeetime){var wx=wxEntry(undefined);if(wx&&lb){lb.textContent=wx;lb.style.color='var(--grey-l)';}}
   });
 }
 
@@ -1303,12 +1304,15 @@ function renderLiveBoard(){
     const groups=[...new Set(dm.map(m=>m.type))].sort((a,b)=>(fmtOrder.indexOf(a)<0?99:fmtOrder.indexOf(a))-(fmtOrder.indexOf(b)<0?99:fmtOrder.indexOf(b)));
     const tt=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:null;
     const ttSlots=[tt&&tt.t1?`🕗 ${tt.t1} Uhr`:'',tt&&tt.t2?`🕗 ${tt.t2} Uhr`:''];
+    const ttKeys=['t1','t2'];
     const groupsHtml=groups.map((type,gi)=>{
       const gm=dm.filter(m=>m.type===type);
+      const ttKey=ttKeys[gi];
       const ttTag=ttSlots[gi]?`<span style="font-size:11px;color:var(--grey-l);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px">${ttSlots[gi]}</span>`:'';
+      const wxTag=ttSlots[gi]?`<span id="lb-wx-${day}-${ttKey}" style="font-size:11px;color:var(--grey);font-weight:400;letter-spacing:0;text-transform:none;margin-left:4px"></span>`:'';
       const cname=gm[0]&&COURSES[gm[0].ckey]?`<span style="font-size:11px;color:var(--grey);font-weight:400;letter-spacing:0;text-transform:none;margin-left:6px">· ${COURSES[gm[0].ckey].name}</span>`:'';
       return`<div style="margin-bottom:10px">
-        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}${ttTag}${cname}</div>
+        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:var(--gold);margin-bottom:6px;text-transform:uppercase;text-align:center">${fmtLabel[type]||type}${ttTag}${wxTag}${cname}</div>
         <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px">${gm.map(mkCard).join('')}</div>
       </div>`;
     }).join('');
@@ -1321,7 +1325,7 @@ function renderLiveBoard(){
           <div style="font-size:22px;font-weight:700;letter-spacing:2px;color:var(--grey-l);text-transform:uppercase;margin-bottom:4px">${day==='Samstag'?'🏆 ':''}${day}</div>
           <div style="display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap">
             ${scHtml}${wp}
-            <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)">⏳</span>
+            <span id="lb-wx-${day}" style="font-size:11px;color:var(--grey)"></span>
           </div>
         </div>`;
       })()}
