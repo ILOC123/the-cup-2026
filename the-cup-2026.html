@@ -1183,7 +1183,8 @@ function teamStrokes(m){
 }
 function stblPts(g,par,s){return Math.max(0,2+par-g+s);}
 function scCls(g,par,s){const d=par-(g-s);if(d>=2)return'eagle';if(d===1)return'birdie';if(d===0)return'par';if(d===-1)return'bogey';if(d===-2)return'double';return'worse';}
-function fmt(v){return String(parseFloat(Number(v||0).toFixed(2)));}
+function fmt(v){return Number(v||0).toFixed(1);}
+function fmtPts(v){return String(parseFloat(Number(v||0).toFixed(2)));}
 // ─── NTP HELPERS (Round-based) ─────────────────────────────
 // NTP gilt pro Runde (Tag+Typ), nicht pro einzelnem Match
 // Nicht gültig für: einzel, duebler
@@ -1855,7 +1856,7 @@ function renderSB(){
     return '<div class="pli '+rowCls+' '+sepCls+' '+teamCls+'">'+rnk
       +'<div class="pavatar '+avCls+'">'+initials+'</div>'
       +'<div class="pi2"><div class="n">'+p.n+'</div><div class="t">'+(p.team==='rot'?'Team Rot':'Team Blau')+' · HCP '+p.hcp+'</div></div>'
-      +'<div class="pp '+ppCls+'">'+fmt(pt[p.n]||0)+'</div>'
+      +'<div class="pp '+ppCls+'">'+fmtPts(pt[p.n]||0)+'</div>'
       +'</div>';
   }).join('')}
   ${hioList.length>0?`<div class="stit" style="margin-top:16px">⛳ HOLE IN ONE</div><div style="padding:4px 0 8px">${hioList.map(function(x){var tc=x.team==='rot'?'var(--rot-m)':'var(--blau-m)';var te=x.team==='rot'?'🔴':'🔵';return'<div class="hio-sb-row"><span style="font-size:22px">⛳</span><div style="flex:1"><div style="font-weight:700;color:'+tc+'">'+te+' '+x.player+'</div><div style="font-size:11px;color:var(--grey)">Loch '+x.hole+' · '+x.day+'</div></div><span style="font-size:20px">🏆</span></div>';}).join('')}</div>`:''}`;
@@ -2368,7 +2369,7 @@ function renderSP(){
   document.getElementById('sp-c').innerHTML='<div style="padding:12px 0 0">'+
     [...PL.rot.map(p=>({...p,team:'rot'})),...PL.blau.map(p=>({...p,team:'blau'}))]
     .map(p=>({...p,pts:pt[p.n]||0})).sort((a,b2)=>b2.pts-a.pts).map(p=>{
-      return`<div class="spc"><div class="sph"><div class="spav ${p.team}">${p.n.slice(0,2).toUpperCase()}</div><div><div class="spnm">${p.n}</div><div class="sphcp">${p.team==='rot'?'Team Rot':'Team Blau'} · HCP ${p.hcp}</div></div><div class="sptot ${p.team}">${fmt(pt[p.n]||0)}</div></div></div>`;
+      return`<div class="spc"><div class="sph"><div class="spav ${p.team}">${p.n.slice(0,2).toUpperCase()}</div><div><div class="spnm">${p.n}</div><div class="sphcp">${p.team==='rot'?'Team Rot':'Team Blau'} · HCP ${p.hcp}</div></div><div class="sptot ${p.team}">${fmtPts(pt[p.n]||0)}</div></div></div>`;
     }).join('')+'</div>';
 }
 
