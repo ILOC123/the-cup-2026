@@ -1057,7 +1057,6 @@ async function updateWxInSB(){
   const data=await fetchWx();if(!data)return;
   const ts=data.properties&&data.properties.timeseries;if(!ts)return;
   ['Donnerstag','Freitag','Samstag'].forEach(function(day){
-    var el=document.getElementById('wx-'+day);if(!el)return;
     var date=wxDayDate(day);if(!date)return;
     var ttObj=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:null;
     var ttHour=ttObj&&ttObj.t1?parseInt(ttObj.t1.split(':')[0],10):undefined;
@@ -1068,7 +1067,6 @@ async function updateWxInSB(){
       ||(d.next_6_hours&&d.next_6_hours.summary&&d.next_6_hours.summary.symbol_code);
     var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
     var wxText=wxEmoji(symbol)+(temp!==undefined?' '+Math.round(temp)+'°C':'')+(wind!==undefined?' · 💨'+Math.round(wind)+'m/s':'');
-    el.textContent='Wetter: '+wxText;el.style.color='var(--grey-l)';
     var lb=document.getElementById('lb-wx-'+day);if(lb){lb.textContent=wxText;lb.style.color='var(--grey-l)';}
   });
 }
