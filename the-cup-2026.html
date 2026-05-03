@@ -2152,7 +2152,7 @@ function renderEntry(m){
          +'<span class="ntp-unit">cm</span>'
          +(bTot!==null&&bTot>0?clrBtn('blau'):'');
       rows+='<div class="ntp-row">'
-        +'<span class="ntp-lbl">📍 '+ntpRound.label+' &nbsp;·&nbsp; Bester Schuss gewinnt Runde (+'+fmt(getNtpPpr())+' Pkt)</span>'
+        +'<span class="ntp-lbl">📍 '+ntpRound.label.toUpperCase()+' &nbsp;·&nbsp; BESTER SCHLAG PRO RUNDE ('+fmt(getNtpPpr())+' Punkte)</span>'
         +'<div class="ntp-teams">'
         +'<div class="ntp-team rot-t"><div class="ntp-team-lbl">🔴 Rot</div><div class="ntp-mc">'+rotInputs+'</div></div>'
         +'<div class="ntp-team blau-t"><div class="ntp-team-lbl">🔵 Blau</div><div class="ntp-mc">'+blauInputs+'</div></div>'
