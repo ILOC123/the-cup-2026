@@ -1059,15 +1059,26 @@ async function updateWxInSB(){
   ['Donnerstag','Freitag','Samstag'].forEach(function(day){
     var date=wxDayDate(day);if(!date)return;
     var ttObj=EXTRAS.teetimes&&typeof EXTRAS.teetimes[day]==='object'?EXTRAS.teetimes[day]:null;
-    var ttHour=ttObj&&ttObj.t1?parseInt(ttObj.t1.split(':')[0],10):undefined;
-    var entry=wxForDate(ts,date,ttHour);if(!entry)return;
-    var d=entry.data;if(!d)return;
-    var temp=d.instant&&d.instant.details&&d.instant.details.air_temperature;
-    var symbol=(d.next_1_hours&&d.next_1_hours.summary&&d.next_1_hours.summary.symbol_code)
-      ||(d.next_6_hours&&d.next_6_hours.summary&&d.next_6_hours.summary.symbol_code);
-    var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
-    var wxText=wxEmoji(symbol)+(temp!==undefined?' '+Math.round(temp)+'°C':'')+(wind!==undefined?' · 💨'+Math.round(wind)+'m/s':'');
-    var lb=document.getElementById('lb-wx-'+day);if(lb){lb.textContent=wxText;lb.style.color='var(--grey-l)';}
+    var lb=document.getElementById('lb-wx-'+day);if(!lb)return;
+    function wxEntry(hour){
+      var entry=wxForDate(ts,date,hour);if(!entry)return null;
+      var d=entry.data;if(!d)return null;
+      var temp=d.instant&&d.instant.details&&d.instant.details.air_temperature;
+      var symbol=(d.next_1_hours&&d.next_1_hours.summary&&d.next_1_hours.summary.symbol_code)
+        ||(d.next_6_hours&&d.next_6_hours.summary&&d.next_6_hours.summary.symbol_code);
+      var wind=d.instant&&d.instant.details&&d.instant.details.wind_speed;
+      return wxEmoji(symbol)+(temp!==undefined?' '+Math.round(temp)+'°C':'')+(wind!==undefined?' 💨'+Math.round(wind)+'m/s':'');
+    }
+    var parts=[];
+    ['t1','t2'].forEach(function(slot){
+      var tStr=ttObj&&ttObj[slot];if(!tStr)return;
+      var hour=parseInt(tStr.split(':')[0],10);
+      var wx=wxEntry(hour);if(!wx)return;
+      parts.push(tStr+' Uhr '+wx);
+    });
+    if(!parts.length){var wx=wxEntry(undefined);if(wx)parts.push(wx);}
+    if(!parts.length)return;
+    lb.textContent=parts.join('  ·  ');lb.style.color='var(--grey-l)';
   });
 }
 
