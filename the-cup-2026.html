@@ -4057,7 +4057,18 @@ function confirmHIO(mid,hole,player,team){
   var entry={id:'hio_'+Date.now(),player:player,team:team,hole:hole,matchId:mid,day:m?m.day:'',ts:Date.now()};
   hioList.push(entry);
   localStorage.setItem('c26hio',JSON.stringify(hioList));
-  // HIO auf NTP-Loch → NTP automatisch für dieses Team gewinnen (Distanz = 1cm)
+  // HIO: Score automatisch auf 1 setzen → Loch ist gewonnen
+  if(m){
+    var hIdx=hole-1;
+    var isBBtype=m.type==='bb'||m.type==='duebler'||m.type==='greensome';
+    var isTeamA=m.tA===team;
+    var scoreKey=isBBtype?(isTeamA?'__A':'__B'):player;
+    if(!scores[mid])scores[mid]={};
+    if(!scores[mid][hIdx])scores[mid][hIdx]={};
+    scores[mid][hIdx][scoreKey]=1;
+    recalcM(m);
+  }
+  // HIO auf NTP-Loch → NTP automatisch für dieses Team gewinnen (Distanz = 0cm)
   if(m&&EXTRAS.ntp.enabled){
     var hIdx=hole-1;
     (EXTRAS.ntp.rounds||[]).forEach(function(r){
