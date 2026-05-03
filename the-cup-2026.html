@@ -1568,7 +1568,7 @@ function recalcM(m){
     results[m.id]={rotUP:m.tA==='rot'?ptA:ptB,blauUP:m.tA==='rot'?ptB:ptA,holesPlayed:hp,rotPts:rP,blauPts:bP,preset:false,isStabl:true};return;
   }
   const ts=teamStrokes(m);let rUP=0,bUP=0,hp=0;
-  hi.forEach(h=>{const hd=s[h]||{};const vA=hd[kA]||0,vB=hd[kB]||0;const hioA=vA===1&&vB===0,hioB=vB===1&&vA===0;if(!(vA>0&&vB>0)&&!hioA&&!hioB)return;hp++;const t=ts.ph[h]||0;const effA=vA>0?vA:Infinity,effB=vB>0?vB:Infinity;const nA=effA-(t>0?t:0);const nB=effB-(t<0?Math.abs(t):0);const tAr=m.tA==='rot';if(nA<nB){if(tAr)rUP++;else bUP++;}else if(nB<nA){if(tAr)bUP++;else rUP++;}});
+  hi.forEach(h=>{const hd=s[h]||{};const vA=hd[kA]||0,vB=hd[kB]||0;const hioA=vA===1&&vB===0&&(hioList||[]).some(x=>x.matchId===m.id&&x.hole===h+1&&x.team===m.tA);const hioB=vB===1&&vA===0&&(hioList||[]).some(x=>x.matchId===m.id&&x.hole===h+1&&x.team===m.tB);if(!(vA>0&&vB>0)&&!hioA&&!hioB)return;hp++;const t=ts.ph[h]||0;const effA=vA>0?vA:Infinity,effB=vB>0?vB:Infinity;const nA=effA-(t>0?t:0);const nB=effB-(t<0?Math.abs(t):0);const tAr=m.tA==='rot';if(nA<nB){if(tAr)rUP++;else bUP++;}else if(nB<nA){if(tAr)bUP++;else rUP++;}});
   const hl=hi.length-hp;let rP=0,bP=0;if(hl===0||Math.abs(rUP-bUP)>hl){if(rUP>bUP)rP=1;else if(bUP>rUP)bP=1;else{rP=0.5;bP=0.5;}}
   results[m.id]={rotUP:rUP,blauUP:bUP,holesPlayed:hp,rotPts:rP,blauPts:bP,preset:false};
 }
@@ -2074,7 +2074,7 @@ function renderEntry(m){
         }
       }
       else{const tH=isBB?(ts?.ph[h]||0):(tsEz?.ph[h]||0);const nA=vA-(tH>0?tH:0);const nB=vB-(tH<0?Math.abs(tH):0);const tAr=m.tA==='rot';let cls='tie',txt='TIE';if(nA<nB){cls=tAr?'rl':'bl';txt=tAr?'🔴':'🔵';}else if(nB<nA){cls=tAr?'bl':'rl';txt=tAr?'🔵':'🔴';}rc=`<div class="hr ${cls}" id="hr-${m.id}-${h}">${txt}</div>`;}
-    }else if(!isStabl&&(vA===1||vB===1)){const tH=isBB?(ts?.ph[h]||0):(tsEz?.ph[h]||0);const effA=vA>0?vA-(tH>0?tH:0):Infinity;const effB=vB>0?vB-(tH<0?Math.abs(tH):0):Infinity;const tAr=m.tA==='rot';let cls='tie',txt='TIE';if(effA<effB){cls=tAr?'rl':'bl';txt=tAr?'🔴':'🔵';}else if(effB<effA){cls=tAr?'bl':'rl';txt=tAr?'🔵':'🔴';}rc=`<div class="hr ${cls}" id="hr-${m.id}-${h}">${txt}</div>`;}
+    }else if(!isStabl&&((vA===1&&vB===0&&(hioList||[]).some(x=>x.matchId===m.id&&x.hole===h+1&&x.team===m.tA))||(vB===1&&vA===0&&(hioList||[]).some(x=>x.matchId===m.id&&x.hole===h+1&&x.team===m.tB)))){const tH=isBB?(ts?.ph[h]||0):(tsEz?.ph[h]||0);const effA=vA>0?vA-(tH>0?tH:0):Infinity;const effB=vB>0?vB-(tH<0?Math.abs(tH):0):Infinity;const tAr=m.tA==='rot';let cls='tie',txt='TIE';if(effA<effB){cls=tAr?'rl':'bl';txt=tAr?'🔴':'🔵';}else if(effB<effA){cls=tAr?'bl':'rl';txt=tAr?'🔵':'🔴';}rc=`<div class="hr ${cls}" id="hr-${m.id}-${h}">${txt}</div>`;}
     else if(isStabl)rc=`<div style="display:flex;flex-direction:column;gap:1px"><div class="spb zero">—</div><div class="spb zero">—</div></div>`;
     const la=c.laenge?`<div style="font-size:8px;color:rgba(255,255,255,0.25)">${typeof c.laenge[h]==='string'?c.laenge[h]:c.laenge[h]+'m'}</div>`:'';
     const isNtp=!!ntpG2;
@@ -2300,7 +2300,9 @@ function chS(mid,h,key,d2){
     const hd3=scores[mid][h]||{};
     const vA3=hd3[m.type==='bb'||m.type==='duebler'||m.type==='greensome'?'__A':m.pA[0]]||0;
     const vB3=hd3[m.type==='bb'||m.type==='duebler'||m.type==='greensome'?'__B':m.pB[0]]||0;
-    if(vA3>0&&vB3>0||(vA3===1||vB3===1)){
+    const hioA3=vA3===1&&vB3===0&&(hioList||[]).some(x=>x.matchId===mid&&x.hole===h+1&&x.team===m.tA);
+    const hioB3=vB3===1&&vA3===0&&(hioList||[]).some(x=>x.matchId===mid&&x.hole===h+1&&x.team===m.tB);
+    if(vA3>0&&vB3>0||hioA3||hioB3){
       const tH3=ts3.ph[h]||0;
       const effA3=vA3>0?vA3-(tH3>0?tH3:0):Infinity;
       const effB3=vB3>0?vB3-(tH3<0?Math.abs(tH3):0):Infinity;
