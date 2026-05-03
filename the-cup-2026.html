@@ -2034,8 +2034,10 @@ function renderEntry(m){
           ?'<span style="background:rgba(201,150,10,0.25);color:var(--gold);font-size:9px;font-weight:700;padding:1px 5px;border-radius:5px;margin-left:4px">+'+stk2+'●</span>'
           :'';
         var safeN2=pName2.replace(/[^a-zA-Z0-9]/g,'_');
-        // ptsBadge nur für Live-Update ID, nicht anzeigen (Punkte im fixierten Strip)
-        var ptsBadge2='<span id="sp-'+mid2+'-'+hole2+'-'+safeN2+'" style="display:none"></span>';
+        var ptsNow=v2>0?stblPts(v2,par,stk2):null;
+        var ptsTxt=ptsNow!==null?ptsNow+'P':'—';
+        var ptsCol=ptsNow===null?'rgba(255,255,255,0.18)':ptsNow>0?'var(--gold)':'rgba(255,255,255,0.3)';
+        var ptsBadge2='<div id="sp-'+mid2+'-'+hole2+'-'+safeN2+'" style="font-size:11px;font-weight:700;text-align:center;margin-top:5px;color:'+ptsCol+'">'+ptsTxt+'</div>';
         return '<div class="stbl-card '+teamCls2+'">'
           +'<div class="stbl-card-name">'+pName2+stkBadge2+'</div>'
           +'<div class="stbl-card-inp">'
@@ -2341,7 +2343,7 @@ function chSp(mid,h,pName,d2){
     const strok2=playerStrokes(pName,m.ckey,hi);
     const pts=stblPts(nv,c.par[h],strok2[h]||0);
     ptsBadgeEl.textContent=pts+'P';
-    ptsBadgeEl.parentElement.style.display='';
+    ptsBadgeEl.style.color=pts>0?'var(--gold)':'rgba(255,255,255,0.3)';
   }
   recalcM(m);saveData();
   const x=results[mid]||{};
