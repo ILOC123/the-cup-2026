@@ -2346,10 +2346,20 @@ function chSp(mid,h,pName,d2){
     ptsBadgeEl.style.color=pts>0?'var(--gold)':'rgba(255,255,255,0.3)';
   }
   recalcM(m);saveData();
-  const x=results[mid]||{};
+  // Live-Teilsumme: alle bereits eingetragenen Scores zählen (nicht erst wenn alle 4 fertig)
+  var liveRot=0,liveBlau=0;
+  var stPa=m.pA.map(function(p){return playerStrokes(p,m.ckey,hi);});
+  var stPb=m.pB.map(function(p){return playerStrokes(p,m.ckey,hi);});
+  hi.forEach(function(h2){
+    var hd2=scores[mid][h2]||{};
+    var tA2=m.pA.reduce(function(s,p,i){var v=hd2[p]||0;return v>0?s+stblPts(v,c.par[h2],stPa[i][h2]||0):s;},0);
+    var tB2=m.pB.reduce(function(s,p,i){var v=hd2[p]||0;return v>0?s+stblPts(v,c.par[h2],stPb[i][h2]||0):s;},0);
+    liveRot+=m.tA==='rot'?tA2:tB2;
+    liveBlau+=m.tA==='rot'?tB2:tA2;
+  });
   const lru2=document.getElementById('lru');const lbu2=document.getElementById('lbu');
-  if(lru2)lru2.textContent=(x.rotUP||0)+'P';
-  if(lbu2)lbu2.textContent=(x.blauUP||0)+'P';
+  if(lru2)lru2.textContent=liveRot+'P';
+  if(lbu2)lbu2.textContent=liveBlau+'P';
   renderSB();
 }
 
