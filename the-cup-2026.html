@@ -3943,8 +3943,59 @@ function downloadArchiv(id){
   setTimeout(function(){URL.revokeObjectURL(a.href);document.body.removeChild(a);},1000);
 }
 
+function exportBackup(){
+  var data={
+    scores:localStorage.getItem('c26s'),
+    results:localStorage.getItem('c26r'),
+    ntp:localStorage.getItem('c26ntp'),
+    hio:localStorage.getItem('c26hio'),
+    players:localStorage.getItem('c26p'),
+    matches:localStorage.getItem('c26m'),
+    extras:localStorage.getItem('c26e'),
+    tees:localStorage.getItem('c26t'),
+    exportedAt:new Date().toISOString()
+  };
+  var json=JSON.stringify(data,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  var d=new Date();
+  a.download='the-cup-backup-'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'.json';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);document.body.removeChild(a);},1000);
+  showToast('Backup heruntergeladen ✓');
+}
+function importBackup(file){
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(data.scores)localStorage.setItem('c26s',data.scores);
+      if(data.results)localStorage.setItem('c26r',data.results);
+      if(data.ntp)localStorage.setItem('c26ntp',data.ntp);
+      if(data.hio)localStorage.setItem('c26hio',data.hio);
+      if(data.players)localStorage.setItem('c26p',data.players);
+      if(data.matches)localStorage.setItem('c26m',data.matches);
+      if(data.extras)localStorage.setItem('c26e',data.extras);
+      if(data.tees)localStorage.setItem('c26t',data.tees);
+      loadData();recalcAll();renderSB();renderSC();renderSP();renderAdm();
+      showToast('Backup wiederhergestellt ✓');
+    }catch(err){showToast('Fehler: Ungültige Backup-Datei');}
+  };
+  reader.readAsText(file);
+}
 function bArchiv(){
   var arr=getArchiv();
+
+  // Backup-Sektion
+  var backup='<div class="ac" style="border-color:rgba(100,200,100,0.3)">'
+    +'<h3>💾 Datensicherung</h3>'
+    +'<div style="font-size:11px;color:var(--grey);margin-bottom:12px">Alle Scores, Ergebnisse, NTP und HIO als JSON-Datei sichern oder wiederherstellen.</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +'<button class="svb" onclick="exportBackup()" style="flex:1;min-width:140px">📥 Backup exportieren</button>'
+    +'<label class="svb" style="flex:1;min-width:140px;text-align:center;cursor:pointer">📤 Backup importieren<input type="file" accept=".json" style="display:none" onchange="importBackup(this.files[0]);this.value=\'\'"></label>'
+    +'</div>'
+    +'</div>';
 
   // Archivieren-Formular
   var form='<div class="ac" style="border-color:rgba(201,150,10,0.4)">'
@@ -3967,7 +4018,7 @@ function bArchiv(){
     +'</div>';
 
   if(!arr.length){
-    return form+'<div class="ac"><div style="text-align:center;color:var(--grey);font-size:13px;padding:20px 0">Noch keine archivierten Turniere</div></div>';
+    return backup+form+'<div class="ac"><div style="text-align:center;color:var(--grey);font-size:13px;padding:20px 0">Noch keine archivierten Turniere</div></div>';
   }
 
   // Archiv-Einträge
@@ -4060,7 +4111,7 @@ function bArchiv(){
       +'</div>';
   }).join('');
 
-  return form+entries;
+  return backup+form+entries;
 }
 
 function rstAll(){
