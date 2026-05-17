@@ -704,14 +704,19 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
   var KEYS = ['c26s','c26r','c26ntp','c26m','c26e','c26t','c26p','c26hio'];
   var isSyncing = false;
   var lastPush = 0;
+  var pendingPush = false;
+  var needsRePush = false;
   var evtSource = null;
 
   // ── PUSH: lokale Daten → Firebase ────────────────────────
   window.fbPush = function() {
-    if(isSyncing) return;
+    if(isSyncing){ needsRePush=true; return; }
+    if(pendingPush){ needsRePush=true; return; }
     var now = Date.now();
-    if(now - lastPush < 500) return; // debounce 500ms
+    if(now - lastPush < 500){ needsRePush=true; return; } // debounce 500ms
     lastPush = now;
+    pendingPush = true;
+    needsRePush = false;
     var data = {};
     KEYS.forEach(function(k){
       var v = localStorage.getItem(k);
@@ -723,14 +728,18 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
       body: JSON.stringify(data)
     }).then(function(r){
       setSyncDot(r.ok ? 'green' : 'orange');
+      pendingPush = false;
+      if(needsRePush){ needsRePush=false; setTimeout(window.fbPush, 100); }
     }).catch(function(){
       setSyncDot('orange');
+      pendingPush = false;
+      if(needsRePush){ needsRePush=false; setTimeout(window.fbPush, 2000); }
     });
   };
 
   // ── APPLY: Firebase Daten → lokal ────────────────────────
   function applyRemote(data) {
-    if(!data || isSyncing) return;
+    if(!data || isSyncing || pendingPush || needsRePush) return;
     isSyncing = true;
     var changed = false;
     KEYS.forEach(function(k){
