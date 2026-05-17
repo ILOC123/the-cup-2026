@@ -1187,11 +1187,11 @@ function getHoleIdx(m){
   return Array.from({length:m.holes||tot},(_,i)=>i);
 }
 function playerStrokes(name,ckey,hi){
-  const c=COURSES[ckey];const chcp18=courseHcp(getHcp(name),ckey);const n=hi.length;
-  // Bei 9 Löchern: CourseHCP halbieren (WHS Standard: aufrunden bei .5)
-  const chcp=n<18?Math.floor(chcp18/2+0.5):chcp18;
+  const c=COURSES[ckey];
+  // Immer 18-Loch CHCP verwenden — Schläge pro Loch sind fix, egal ob 9 oder 18L gespielt wird
+  const chcp=courseHcp(getHcp(name),ckey);
   const res={};
-  hi.forEach(h=>{const vg=c.vorg[h];res[h]=(vg<=chcp?1:0)+(vg<=(chcp-n)?1:0);});
+  hi.forEach(h=>{const vg=c.vorg[h];res[h]=(vg<=chcp?1:0)+(vg<=(chcp-18)?1:0);});
   return res;
 }
 function teamStrokes(m){
