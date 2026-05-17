@@ -274,6 +274,7 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 .scv{font-family:var(--mono);font-size:15px;font-weight:700;
   min-width:38px;height:38px;text-align:center;line-height:38px;color:var(--white);
   position:relative;display:flex;align-items:center;justify-content:center;z-index:1;}
+.scv.def{color:rgba(255,255,255,0.25);}
 
 /* Golf Scorecard Darstellung */
 /* Eagle: doppelter Kreis */
@@ -2083,7 +2084,7 @@ function renderEntry(m){
       var mkCard=function(mid2,hole2,pName2,teamCls2,strokH2,holeData2){
         var v2=holeData2[pName2]||0;
         var stk2=strokH2[hole2]||0;
-        var cls2=v2>0?scCls(v2,par,stk2):'';
+        var cls2=v2>0?scCls(v2,par,stk2):'def';
         var pid2='sv-'+mid2+'-'+hole2+'-'+pName2.replace(/[^a-zA-Z0-9]/g,'_');
         var stkBadge2=stk2>0
           ?'<span style="background:rgba(201,150,10,0.25);color:var(--gold);font-size:9px;font-weight:700;padding:1px 5px;border-radius:5px;margin-left:4px">+'+stk2+'●</span>'
@@ -2097,7 +2098,7 @@ function renderEntry(m){
           +'<div class="stbl-card-name">'+pName2+stkBadge2+'</div>'
           +'<div class="stbl-card-inp">'
           +'<button class="scbtn" data-mid="'+mid2+'" data-h="'+hole2+'" data-pn="'+pName2+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,-1)">−</button>'
-          +'<div class="scv '+cls2+'" id="'+pid2+'">'+( v2||'0')+'</div>'
+          +'<div class="scv '+cls2+'" id="'+pid2+'">'+(v2||(par+stk2))+'</div>'
           +'<button class="scbtn" data-mid="'+mid2+'" data-h="'+hole2+'" data-pn="'+pName2+'" ontouchstart="tap(this)" onclick="chSp(this.dataset.mid,+this.dataset.h,this.dataset.pn,1)">+</button>'
           +'</div>'
           +ptsBadge2+'</div>';
@@ -2111,8 +2112,9 @@ function renderEntry(m){
       cardsHtml+='</div></div>';
       allInputs=cardsHtml;
     }else{
-      const clsA=vA>0?scCls(vA,par,stFA):'';const clsB=vB>0?scCls(vB,par,stFB):'';
-      allInputs=`<div class="scw ${cA}"><button class="scbtn" ontouchstart="tap(this)" onclick="chS('${m.id}',${h},'${kA}',-1)">−</button><div class="scv ${clsA}" id="sv-${m.id}-${h}-A">${vA||'0'}</div><button class="scbtn" ontouchstart="tap(this)" onclick="chS('${m.id}',${h},'${kA}',1)">+</button></div><div class="scw ${cB}"><button class="scbtn" ontouchstart="tap(this)" onclick="chS('${m.id}',${h},'${kB}',-1)">−</button><div class="scv ${clsB}" id="sv-${m.id}-${h}-B">${vB||'0'}</div><button class="scbtn" ontouchstart="tap(this)" onclick="chS('${m.id}',${h},'${kB}',1)">+</button></div>`;
+      const clsA=vA>0?scCls(vA,par,stFA):'def';const clsB=vB>0?scCls(vB,par,stFB):'def';
+      const defA=par+stFA,defB=par+stFB;
+      allInputs=`<div class="scw ${cA}"><button class="scbtn" ontouchstart="tap(this)" onclick="chS('${m.id}',${h},'${kA}',-1)">−</button><div class="scv ${clsA}" id="sv-${m.id}-${h}-A">${vA||defA}</div><button class="scbtn" ontouchstart="tap(this)" onclick="chS('${m.id}',${h},'${kA}',1)">+</button></div><div class="scw ${cB}"><button class="scbtn" ontouchstart="tap(this)" onclick="chS('${m.id}',${h},'${kB}',-1)">−</button><div class="scv ${clsB}" id="sv-${m.id}-${h}-B">${vB||defB}</div><button class="scbtn" ontouchstart="tap(this)" onclick="chS('${m.id}',${h},'${kB}',1)">+</button></div>`;
     }
     let rc=`<div class="hr" id="hr-${m.id}-${h}">—</div>`;
     if(done){
@@ -2326,20 +2328,19 @@ function chS(mid,h,key,d2){
   const m=MATCHES.find(x=>x.id===mid);
   if(m&&m.locked){showToast('Match gesperrt 🔒');return;}const c=cd(m);const hi=getHoleIdx(m);
   const prevV=scores[mid][h][key]||0;
-  const nv=Math.max(1,Math.min(15,prevV+d2));
-  if(prevV===0&&d2<0)return;
-  scores[mid][h][key]=nv;
   const side=key==='__A'||key===m.pA[0]?'A':'B';
+  const isBB2=m.type==='bb'||m.type==='duebler'||m.type==='greensome';
+  const isEz2=m.type==='einzel';
+  let stk=0;
+  if(isBB2||isEz2){const ts2=teamStrokes(m);const t=ts2.ph[h]||0;stk=side==='A'?Math.max(0,t):Math.max(0,-t);}
+  else{const strok=side==='A'?playerStrokes(m.pA[0],m.ckey,hi):playerStrokes(m.pB[0],m.ckey,hi);stk=strok[h]||0;}
+  const netPar=c.par[h]+stk;
+  const nv=prevV===0?(d2>0?netPar:Math.max(1,netPar-1)):Math.max(1,Math.min(15,prevV+d2));
+  scores[mid][h][key]=nv;
   const el=document.getElementById(`sv-${mid}-${h}-${side}`);
   if(el){el.textContent=nv;
-    const isBB2=m.type==='bb'||m.type==='duebler'||m.type==='greensome';
-    const isEz2=m.type==='einzel';
-    let stk=0;
-    if(isBB2||isEz2){const ts2=teamStrokes(m);const t=ts2.ph[h]||0;stk=side==='A'?Math.max(0,t):Math.max(0,-t);}
-    else{const strok=side==='A'?playerStrokes(m.pA[0],m.ckey,hi):playerStrokes(m.pB[0],m.ckey,hi);stk=strok[h]||0;}
     const newCls=scCls(nv,c.par[h],stk);
     el.className=`scv ${newCls}`;
-
   }
   recalcM(m);saveData();const x=results[mid]||{};let stxt='TIE',scls='tie';
   if(m.type==='stabl'){const ru=x.rotUP||0,bu=x.blauUP||0;if(ru>bu){stxt=`🔴${ru}P`;scls='rl';}else if(bu>ru){stxt=`🔵${bu}P`;scls='bl';}}
@@ -2384,15 +2385,16 @@ function chSp(mid,h,pName,d2){
   const m=MATCHES.find(x=>x.id===mid);
   if(m&&m.locked){showToast('Match gesperrt 🔒');return;}const c=cd(m);const hi=getHoleIdx(m);
   const prevVp=scores[mid][h][pName]||0;
-  const nv=Math.max(1,Math.min(15,prevVp+d2));
-  if(prevVp===0&&d2<0)return;
+  const strokP=playerStrokes(pName,m.ckey,hi);
+  const stkP=strokP[h]||0;
+  const netParP=c.par[h]+stkP;
+  const nv=prevVp===0?(d2>0?netParP:Math.max(1,netParP-1)):Math.max(1,Math.min(15,prevVp+d2));
   scores[mid][h][pName]=nv;
   const safeN=pName.replace(/[^a-zA-Z0-9]/g,'_');
   // Score-Anzeige aktualisieren
   const el=document.getElementById('sv-'+mid+'-'+h+'-'+safeN);
   if(el){
-    const strok=playerStrokes(pName,m.ckey,hi);
-    const spCls=scCls(nv,c.par[h],strok[h]||0);
+    const spCls=scCls(nv,c.par[h],stkP);
     el.textContent=nv;el.className='scv '+spCls;
 
   }
