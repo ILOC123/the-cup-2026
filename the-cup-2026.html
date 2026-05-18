@@ -918,6 +918,7 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
     <div class="view" id="view-adm"><div id="adm-c"></div></div>
   </div>
 </div>
+<div id="version-footer" style="text-align:center;padding:6px;font-size:10px;color:rgba(255,255,255,0.15);font-family:var(--mono);letter-spacing:1px;user-select:none">v<span id="version-txt"></span></div>
 <div class="toast" id="toast"></div>
 <div id="hio-overlay" onclick="closeHIOOverlay()">
   <div class="hio-banner" id="hio-banner-content" onclick="event.stopPropagation()"></div>
@@ -955,6 +956,7 @@ const COURSES={
     laenge:['84m','92m','101m','96m','114m','107m','118m','111m','125m'],
     tees:{Standard:{cr:27,sr:90,par:27}}}
 };
+const VERSION='2026-05-18';
 const DAYS=['Donnerstag','Freitag','Samstag'];
 const FMT_OPTS=[
   {v:'Best Ball 18L',type:'bb',holes:18,nine:'all'},
@@ -1767,6 +1769,7 @@ function startApp(){
   document.getElementById('splash').style.display='none';document.getElementById('app').classList.add('on');
   document.getElementById('pName').textContent=curP||'Zuschauer';
   document.getElementById('pDot').style.background=curT==='rot'?'var(--rot-m)':curT==='blau'?'var(--blau-m)':'var(--grey)';
+  var vt=document.getElementById('version-txt');if(vt)vt.textContent=VERSION;
   recalcAll();renderSB();renderSC();renderSP();
 }
 
