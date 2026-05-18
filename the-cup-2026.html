@@ -3181,11 +3181,13 @@ function bHcp(){
       <td style="font-size:10px;color:var(--grey)">${viz||'—'}</td></tr>`;
   }).join('');
   // ── HCP Analyse ──
-  var stablMs=MATCHES.filter(function(m){return m.type==='stabl'&&scores[m.id];});
+  // Greensome ausgeschlossen: kein Einzelscore möglich
+  var indivMs=MATCHES.filter(function(m){return['stabl','bb','einzel','duebler'].indexOf(m.type)>=0&&scores[m.id];});
+  var fmtLabel={stabl:'Stabl',bb:'BB',einzel:'Einzel',duebler:'Par3'};
   var allPlA=[...PL.rot.map(function(p){return{...p,team:'rot'};}),...PL.blau.map(function(p){return{...p,team:'blau'};})];
   var analysisRows=allPlA.map(function(p){
     var rounds=[];
-    stablMs.forEach(function(m){
+    indivMs.forEach(function(m){
       if(![...m.pA,...m.pB].includes(p.n))return;
       var hi=getHoleIdx(m);var benchmark=hi.length*2;
       var pts=0;var entered=0;
@@ -3193,13 +3195,16 @@ function bHcp(){
         var hd=(scores[m.id]&&scores[m.id][h])||{};var v=hd[p.n]||0;
         if(v>0){var stk=playerStrokes(p.n,m.ckey,hi)[h]||0;pts+=stblPts(v,COURSES[m.ckey].par[h],stk);entered++;}
       });
-      if(entered>=Math.ceil(hi.length/2))rounds.push({day:m.day,holes:hi.length,pts:pts,benchmark:benchmark,diff:pts-benchmark,cname:COURSES[m.ckey].name});
+      if(entered>=Math.ceil(hi.length/2))rounds.push({day:m.day,fmt:fmtLabel[m.type]||m.type,holes:hi.length,pts:pts,benchmark:benchmark,diff:pts-benchmark});
     });
     if(!rounds.length)return null;
-    var avgDiff=rounds.reduce(function(s,r){return s+r.diff;},0)/rounds.length;
-    var adj=-Math.round(avgDiff*0.96);
+    // Normalisierung auf 18-Loch: damit 9L- und 18L-Runden fair gewichtet werden
+    var totalDiff=rounds.reduce(function(s,r){return s+r.diff;},0);
+    var totalHoles=rounds.reduce(function(s,r){return s+r.holes;},0);
+    var avgDiff18=totalDiff/totalHoles*18;
+    var adj=-Math.round(avgDiff18*0.96);
     var newHcp=Math.max(0,Math.round((p.hcp+adj)*10)/10);
-    return{p:p,rounds:rounds,avgDiff:avgDiff,adj:adj,newHcp:newHcp};
+    return{p:p,rounds:rounds,avgDiff18:avgDiff18,adj:adj,newHcp:newHcp};
   }).filter(Boolean);
 
   var analysisHtml='';
@@ -3207,12 +3212,12 @@ function bHcp(){
     var aRows=analysisRows.map(function(a){
       var col=a.adj<0?'#27ae60':a.adj>0?'var(--rot-m)':'var(--grey)';
       var arrow=a.adj<0?'↓':a.adj>0?'↑':'→';
-      var sign=a.avgDiff>0?'+':'';
+      var sign=a.avgDiff18>0?'+':'';
       var roundsHtml=a.rounds.map(function(r){
         var dc=r.diff>0?'#27ae60':r.diff<0?'var(--rot-m)':'var(--grey)';
         var ds=r.diff>0?'+':'';
         return'<span style="font-size:10px;background:var(--dark3);border-radius:6px;padding:2px 7px;white-space:nowrap">'
-          +r.day.slice(0,2)+' '+r.holes+'L: <strong style="color:'+dc+'">'+r.pts+'P</strong>'
+          +r.day.slice(0,2)+' '+r.fmt+' '+r.holes+'L: <strong style="color:'+dc+'">'+r.pts+'P</strong>'
           +' <span style="color:'+dc+'">'+ds+r.diff+'</span></span>';
       }).join('');
       return'<div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)">'
@@ -3222,13 +3227,13 @@ function bHcp(){
         +'<span style="font-size:11px;color:var(--grey)">HCP '+a.p.hcp+'</span></div>'
         +'<div style="display:flex;gap:6px;flex-wrap:wrap;flex:1">'+roundsHtml+'</div>'
         +'<div style="text-align:right;min-width:110px">'
-        +'<div style="font-size:11px;color:var(--grey)">Ø '+sign+a.avgDiff.toFixed(1)+' Pkt.</div>'
+        +'<div style="font-size:11px;color:var(--grey)">Ø '+sign+a.avgDiff18.toFixed(1)+' Pkt./18L</div>'
         +'<div style="font-size:14px;font-weight:700;color:'+col+'">'+arrow+' HCP '+a.newHcp+'</div></div>'
         +'</div>';
     }).join('');
     analysisHtml='<div class="ac" style="margin-top:10px"><h3>📊 HCP Analyse</h3>'
       +'<div style="font-size:11px;color:var(--grey);margin-bottom:12px;line-height:1.6;padding:8px 10px;background:var(--dark3);border-radius:8px">'
-      +'Basis: Stableford-Runden · Benchmark = '+2+' Pkt./Loch · Formel: HCP − (Ø-Abweichung × 0.96)</div>'
+      +'Basis: Stableford, BB, Einzel, Par3 (ohne Greensome) · Benchmark = 2 Pkt./Loch · 9L/18L normalisiert auf 18L · Formel: HCP − (Ø-Abw. × 0.96)</div>'
       +aRows
       +'<div style="font-size:10px;color:var(--grey);margin-top:10px;text-align:center">↓ Grün = HCP sollte sinken · ↑ Rot = HCP sollte steigen</div>'
       +'</div>';
