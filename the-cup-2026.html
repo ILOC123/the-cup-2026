@@ -1389,6 +1389,7 @@ function renderStats(){
   const dayCards=days.map(day=>{
     const dm=MATCHES.filter(m=>m.day===day);
     let dr=0,db=0;dm.forEach(m=>{const x=results[m.id];if(x){dr+=x.rotPts||0;db+=x.blauPts||0;}});
+    if(EXTRAS.ntp.enabled){const ppr=getNtpPpr();(EXTRAS.ntp.rounds||[]).forEach(function(r){if(r.day!==day)return;const w=getNtpRoundWin(r.id);if(w==='rot')dr+=ppr;else if(w==='blau')db+=ppr;else if(w==='tie'){dr+=ppr/2;db+=ppr/2;}});}
     if(!dr&&!db)return'';
     const rotWin=dr>db,blauWin=db>dr,tie=dr===db;
     const accentCol=rotWin?'rgba(192,57,43,0.18)':blauWin?'rgba(41,128,185,0.18)':'rgba(201,150,10,0.12)';
@@ -1477,6 +1478,7 @@ function renderStats(){
     const chartW=PW-PPX-LPAD;
     const nM=chronoF.length;
     const xp=i=>PPX+(nM>0?i/nM:0)*chartW;
+    const ptTot=getPTot();
     const plData=tPl.map((p,pi)=>{
       let cum=0;const cpts=[0];
       chronoF.forEach(m=>{
@@ -1487,6 +1489,9 @@ function renderStats(){
           else cum+=0.5;}
         cpts.push(cum);
       });
+      // NTP-Beitrag als letzten Schritt
+      const total=ptTot[p.n]||0;if(total>cum)cum=total;
+      cpts[cpts.length-1]=cum;
       return{name:p.n.split(' ')[0],pts:cpts,col:cols[pi%cols.length],final:cum};
     });
     const maxC=Math.max(...plData.map(pd=>Math.max(...pd.pts)),1);
@@ -1526,6 +1531,7 @@ function renderStats(){
   let cR=0,cB=0;
   const pts=[{r:0,b:0}];
   chronoF.forEach(m=>{const x=results[m.id];cR+=x.rotPts||0;cB+=x.blauPts||0;pts.push({r:cR,b:cB});});
+  if(EXTRAS.ntp.enabled){const ppr=getNtpPpr();const ntpSorted=[...(EXTRAS.ntp.rounds||[])].sort((a,b)=>DAY_ORDER.indexOf(a.day)-DAY_ORDER.indexOf(b.day));ntpSorted.forEach(function(r){const w=getNtpRoundWin(r.id);if(!w)return;if(w==='rot')cR+=ppr;else if(w==='blau')cB+=ppr;else{cR+=ppr/2;cB+=ppr/2;}pts.push({r:cR,b:cB});});}
   const n=pts.length-1;
   const maxV=Math.max(cR,cB,1);
   const xs=i=>PX+(n>0?i/n:0)*(W-2*PX);
