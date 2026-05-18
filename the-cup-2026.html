@@ -1901,22 +1901,29 @@ function renderSB(){
   ${ntpG?`<div class="stit" style="margin-top:8px">📍 NEAREST TO THE PIN</div><div class="ntp-sb"><div class="ntp-sb-hdr"><span style="font-size:16px">🎯</span><span style="font-size:12px;font-weight:700;color:var(--gold)">NTP · je ${fmt(getNtpPpr())} Pkt.</span></div>${ntpRows}</div>`:''}
   ${renderStats()!==''?`<button onclick="showStatsSheet()" style="width:100%;margin-top:12px;padding:11px;background:var(--dark2);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:var(--grey-l);font-size:13px;font-weight:600;cursor:pointer;letter-spacing:0.5px">📊 Turnier-Statistik</button>`:''}
   <div class="stit" style="margin-top:16px">🏅 RANGLISTE</div>
-  ${sorted.map(function(p,i){
-    var isGold=i===0,isSilver=i===1,isBronze=i===2;
-    var rowCls=isGold?'gold-row':isSilver?'silver-row':isBronze?'bronze-row':'';
-    var sepCls=i===2?'podium-last':'';
-    var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-    var rnk=medal?'<div class="rnk">'+medal+'</div>':'<div class="rnk plain">'+(i+1)+'</div>';
-    var initials=p.n.slice(0,2).toUpperCase();
-    var avCls=isGold?'gold-av':isSilver?'silver-av':isBronze?'bronze-av':p.team;
-    var ppCls=isGold?'gold-pp':isSilver?'silver-pp':isBronze?'bronze-pp':p.team;
-    var teamCls=(isGold||isSilver||isBronze)?'team-'+p.team:'';
-    return '<div class="pli '+rowCls+' '+sepCls+' '+teamCls+'">'+rnk
-      +'<div class="pavatar '+avCls+'">'+initials+'</div>'
-      +'<div class="pi2"><div class="n">'+p.n+'</div><div class="t">'+(p.team==='rot'?'Team Rot':'Team Blau')+' · HCP '+p.hcp+'</div></div>'
-      +'<div class="pp '+ppCls+'">'+fmtPts(pt[p.n]||0)+'</div>'
-      +'</div>';
-  }).join('')}
+  ${(function(){
+    var ptVals=sorted.map(function(p){return pt[p.n]||0;});
+    var ranks=ptVals.map(function(v){return ptVals.filter(function(x){return x>v;}).length+1;});
+    var tiedArr=ptVals.map(function(v){return ptVals.filter(function(x){return x===v;}).length>1;});
+    return sorted.map(function(p,i){
+      var rank=ranks[i];
+      var isGold=rank===1,isSilver=rank===2,isBronze=rank===3;
+      var rowCls=isGold?'gold-row':isSilver?'silver-row':isBronze?'bronze-row':'';
+      var sepCls=(rank<=3&&(i+1>=sorted.length||ranks[i+1]>3))?'podium-last':'';
+      var medal=isGold?'🥇':isSilver?'🥈':isBronze?'🥉':'';
+      var rnkDisplay=tiedArr[i]?'T'+rank:String(rank);
+      var rnk=medal?'<div class="rnk">'+medal+'</div>':'<div class="rnk plain">'+rnkDisplay+'</div>';
+      var initials=p.n.slice(0,2).toUpperCase();
+      var avCls=isGold?'gold-av':isSilver?'silver-av':isBronze?'bronze-av':p.team;
+      var ppCls=isGold?'gold-pp':isSilver?'silver-pp':isBronze?'bronze-pp':p.team;
+      var teamCls=(isGold||isSilver||isBronze)?'team-'+p.team:'';
+      return '<div class="pli '+rowCls+' '+sepCls+' '+teamCls+'">'+rnk
+        +'<div class="pavatar '+avCls+'">'+initials+'</div>'
+        +'<div class="pi2"><div class="n">'+p.n+'</div><div class="t">'+(p.team==='rot'?'Team Rot':'Team Blau')+' · HCP '+p.hcp+'</div></div>'
+        +'<div class="pp '+ppCls+'">'+fmtPts(pt[p.n]||0)+'</div>'
+        +'</div>';
+    }).join('');
+  })()}
   ${hioList.length>0?`<div class="stit" style="margin-top:16px">⛳ HOLE IN ONE</div><div style="padding:4px 0 8px">${hioList.map(function(x){var tc=x.team==='rot'?'var(--rot-m)':'var(--blau-m)';var te=x.team==='rot'?'🔴':'🔵';return'<div class="hio-sb-row"><span style="font-size:22px">⛳</span><div style="flex:1"><div style="font-weight:700;color:'+tc+'">'+te+' '+x.player+'</div><div style="font-size:11px;color:var(--grey)">Loch '+x.hole+' · '+x.day+'</div></div><span style="font-size:20px">🏆</span></div>';}).join('')}</div>`:''}`;
   updateWxInSB();
 }
