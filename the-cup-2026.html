@@ -62,12 +62,6 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 .pbtn.sel::after{content:'✓';position:absolute;top:7px;right:9px;
   font-size:14px;color:var(--gold);font-weight:800;}
 .pbtn.sel .pn{color:var(--gold);}
-/* Guest button */
-.gbtn{margin-top:0;width:100%;background:transparent;
-  border:1.5px solid rgba(255,255,255,0.15);border-radius:14px;padding:14px;
-  color:var(--grey);font-size:14px;cursor:pointer;font-family:var(--font);
-  min-height:50px;letter-spacing:0.3px;}
-.gbtn:active{opacity:0.7;}
 /* WEITER button - very prominent */
 .stbtn{margin-top:16px;width:100%;max-width:440px;
   background:linear-gradient(135deg,var(--gold),#F0B429);
@@ -121,15 +115,6 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
   color:var(--grey);padding:12px 14px 5px;}
 
 /* Day cards */
-.fc{margin:3px 10px;border-radius:var(--r);overflow:hidden;
-  background:var(--dark2);border:1px solid rgba(255,255,255,0.06);}
-.fch{display:flex;align-items:center;justify-content:space-between;
-  padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);}
-.fch .cn{font-size:13px;font-weight:600;}.fch .cs{font-size:10px;color:var(--grey);margin-top:1px;}
-.fsc{display:flex;align-items:center;gap:8px;}
-.fsn{font-family:var(--mono);font-size:18px;font-weight:500;width:24px;text-align:center;}
-.fsn.rot{color:var(--rot-m);}.fsn.blau{color:var(--blau-m);}
-.fss{color:var(--grey);font-size:12px;}
 .wp{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
   padding:2px 7px;border-radius:20px;}
 .wp.rot{background:rgba(192,57,43,0.2);color:var(--rot-m);}
@@ -317,14 +302,6 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
   top:50%;left:50%;transform:translate(-50%,-50%);
   width:26px;height:26px;
   border:2px solid var(--rot-m);pointer-events:none;z-index:0;}
-/* Stableford: larger named input widget */
-.scw-s{display:flex;flex-direction:column;border-radius:var(--r-sm);overflow:hidden;
-  border:1.5px solid rgba(255,255,255,0.08);background:var(--dark3);}
-.scw-s.rb{border-color:rgba(192,57,43,0.45);}.scw-s.bb{border-color:rgba(41,128,185,0.45);}
-.scw-name{font-size:9px;font-weight:700;text-align:center;padding:3px 4px 0;
-  letter-spacing:0.5px;color:var(--grey-l);}
-.scw-s.rb .scw-name{color:var(--rot-m);}.scw-s.bb .scw-name{color:var(--blau-m);}
-.scw-row{display:flex;align-items:center;justify-content:center;}
 
 
 /* Result badges */
@@ -375,12 +352,6 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 .spnm{font-size:14px;font-weight:700;}.sphcp{font-size:10px;color:var(--grey);margin-top:1px;}
 .sptot{margin-left:auto;font-family:var(--display);font-size:30px;flex-shrink:0;}
 .sptot.rot{color:var(--rot-m);}.sptot.blau{color:var(--blau-m);}
-.sprnds{padding:8px 12px;display:flex;gap:5px;flex-wrap:wrap;}
-.rb2{font-size:10px;padding:3px 8px;border-radius:14px;font-family:var(--mono);
-  font-weight:500;display:flex;align-items:center;gap:3px;}
-.rb2 .rp{font-weight:700;}
-.rb2.rot{background:rgba(192,57,43,0.12);color:#E74C3C;}
-.rb2.blau{background:rgba(41,128,185,0.12);color:#3498DB;}
 
 /* ── ADMIN ───────────────────────────────────────────────── */
 .as{padding:10px;}
@@ -490,7 +461,6 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
   border-radius:4px;font-size:10px;padding:1px 4px;}
 .mc-hi{background:rgba(201,150,10,0.2);color:var(--gold);font-weight:700;
   border-radius:4px;font-size:10px;padding:1px 4px;}
-.mc-n{color:rgba(255,255,255,0.15);font-size:10px;}
 
 /* Password screen */
 .pwb{background:var(--dark2);border:1px solid rgba(255,255,255,0.1);
@@ -504,10 +474,6 @@ html,body{height:100%;background:var(--dark);color:var(--white);font-family:var(
 .pwbtn{width:100%;background:var(--gold);border:none;border-radius:10px;
   padding:14px;color:var(--dark);font-size:15px;font-weight:700;
   cursor:pointer;font-family:var(--font);min-height:var(--touch);}
-.rstbtn{display:block;width:100%;margin-top:7px;background:transparent;
-  border:1.5px solid rgba(255,0,0,0.25);border-radius:10px;padding:11px;
-  color:var(--rot-m);font-size:13px;font-weight:600;cursor:pointer;
-  font-family:var(--font);text-align:center;min-height:var(--touch);}
 
 /* ── ANIMATIONS ──────────────────────────────────────────── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
@@ -1176,7 +1142,6 @@ function saveData(){
   if(typeof window.fbPush==='function')window.fbPush();
 }
 function allP(){return[...PL.rot,...PL.blau];}
-function getTeam(n){return PL.rot.find(x=>x.n===n)?'rot':'blau';}
 function getHcp(n){const p=allP().find(x=>x.n===n);return p?p.hcp:0;}
 function cd(m){return COURSES[m.ckey||'OLD'];}
 function getTee(ckey){const k=TEES[ckey]||Object.keys(COURSES[ckey].tees)[0];return{key:k,...COURSES[ckey].tees[k]};}
@@ -1243,14 +1208,6 @@ function fmtPts(v){return String(parseFloat(Number(v||0).toFixed(2)));}
 // Nicht gültig für: einzel, duebler
 const NTP_EXCL_TYPES=['einzel','duebler'];
 
-function ntpRoundsForMatch(m){
-  // Returns NTP rounds that apply to this match
-  if(NTP_EXCL_TYPES.includes(m.type))return[];
-  if(!EXTRAS.ntp.enabled||!EXTRAS.ntp.rounds)return[];
-  return (EXTRAS.ntp.rounds||[]).filter(function(r){
-    return r.day===m.day && r.types.includes(m.type);
-  });
-}
 
 
 
@@ -1290,7 +1247,6 @@ function getNtpPts(){
 }
 
 function renderLiveBoard(){
-  const fmtShort={bb:'BB',stabl:'SB',greensome:'GS',duebler:'P3',einzel:'EZ'};
   const DAY_ORDER=['Donnerstag','Freitag','Samstag'];
   const days=[...new Set(MATCHES.map(m=>m.day))].sort((a,b)=>(DAY_ORDER.indexOf(a)<0?99:DAY_ORDER.indexOf(a))-(DAY_ORDER.indexOf(b)<0?99:DAY_ORDER.indexOf(b)));
   const dayIcon={Donnerstag:'🌤',Freitag:'☀️',Samstag:'🏆'};
@@ -1563,9 +1519,6 @@ function renderStats(){
   // 6. MVP
   const pt=getPTot();
   const mvp=allPl.map(p=>({...p,pts:pt[p.n]||0})).filter(p=>p.pts>0).sort((a,b)=>b.pts-a.pts)[0];
-  const mvpHtml=mvp?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:12px">
-    🌟 MVP: <strong style="color:${mvp.team==='rot'?'var(--rot-m)':'var(--blau-m)'}">${mvp.n}</strong> — <strong style="color:var(--gold)">${fmt(mvp.pts)} Pkt.</strong>
-  </div>`:'';
 
   const card=(icon,title,color,body)=>`
     <div style="background:var(--dark2);border-radius:12px;border-left:3px solid ${color};padding:12px 14px;margin-bottom:10px">
@@ -2035,7 +1988,6 @@ function renderEntry(m){
     :'';
   let info='';
   if(isBB&&ts){const wt=ts.weakerIsA?(m.tA==='rot'?'🔴 Rot':'🔵 Blau'):(m.tB==='rot'?'🔴 Rot':'🔵 Blau');
-    const wColBB=ts.weakerIsA?(m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'):(m.tB==='rot'?'var(--rot-m)':'var(--blau-m)');
     info=`<div class="infob" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
       <span style="color:var(--grey)">Tee <span class="tee-pill t${tK}">${tK}</span> &nbsp;|&nbsp; CourseHCP: <strong style="color:${m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'}">${ts.avgA}</strong> vs <strong style="color:${m.tB==='rot'?'var(--rot-m)':'var(--blau-m)'}">${ts.avgB}</strong></span>
       ${ts.diff>0?`<span style="background:rgba(201,150,10,0.2);color:var(--gold);border-radius:6px;padding:2px 8px;font-weight:700;font-size:11px;">⛳ ${wt} +${ts.diff} Schläge</span>`:'<span style="color:var(--grey)">Gleiches HCP</span>'}
@@ -2058,7 +2010,6 @@ function renderEntry(m){
     const chB=courseHcp(getHcp(m.pB[0]),m.ckey);
     const tsD=teamStrokes(m);
     const weaker=tsD.weakerIsA?m.pA[0]:m.pB[0];
-    const wkColEz=tsD.weakerIsA?(m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'):(m.tB==='rot'?'var(--rot-m)':'var(--blau-m)');
     info=`<div class="infob" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
       <span style="color:var(--grey)">Tee <span class="tee-pill t${tK}">${tK}</span> &nbsp;|&nbsp;
       ${tAc} CourseHCP <strong style="color:${m.tA==='rot'?'var(--rot-m)':'var(--blau-m)'}">${chA}</strong> vs ${tBc} <strong style="color:${m.tB==='rot'?'var(--rot-m)':'var(--blau-m)'}">${chB}</strong></span>
@@ -2906,39 +2857,6 @@ function rstM(){
 
 // ── SPIELTAG GENERATOR ──────────────────────────────────────
 // Generiert automatisch alle Paarungen für einen Tag
-// Verwendet buildMtx() um optimale Balance zu erzielen
-function genMatchesForFormat(fmt, day, ckey, nine, idPrefix, extraMatches){
-  const fo=FMT_OPTS.find(f=>f.v===fmt);if(!fo)return[];
-  const rot=PL.rot.map(p=>p.n);
-  const blau=PL.blau.map(p=>p.n);
-  // buildMtx mit extraMatches aufrufen (für beide Einzel und 2v2)
-  const {mtx,pmtx}=buildMtx(extraMatches);
-  const ts=Date.now();
-  const pre=idPrefix||(day.slice(0,2).toUpperCase()+'_'+fo.type.toUpperCase()+'_'+ts);
-  const h=fo.holes;const type=fo.type;
-
-  if(type==='einzel'){
-    // 1v1: feste Paarungen lt. Duell-Matrix (Diagonale = 1)
-    const res=[];
-    rot.forEach(function(r){
-      const b=getFixedEinzelPartner(r);
-      if(b&&blau.includes(b)){
-        res.push({id:pre+'_'+(res.length+1),day:day,fmt:fmt,type:type,ckey:ckey,nine:nine,
-          tA:'rot',tB:'blau',pA:[r],pB:[b],holes:h});
-      }
-    });
-    return res;
-  }
-
-  // 2v2 (BB, Stableford, Greensome): 3 matches
-  const rPairs=bestPairs(rot,mtx,blau,'rot',pmtx);
-  const bPairs=bestPairs(blau,mtx,rot,'blau',pmtx);
-  const assigned=assignPairs(rPairs,bPairs,mtx);
-  return assigned.map(function(ab,i){
-    return{id:pre+'_'+(i+1),day:day,fmt:fmt,type:type,ckey:ckey,nine:nine,
-      tA:'rot',tB:'blau',pA:ab.rPair,pB:ab.bPair,holes:h};
-  });
-}
 
 let genPreview=[];
 function previewGen(){
@@ -3191,43 +3109,6 @@ function bHcp(){
   </div>${analysisHtml}`;
 }
 
-// ─── DUELL-MATRIX ─────────────────────────────────────────
-// ─── FESTE DUELL-MATRIX (lt. Turnierdokument) ─────────────
-// Zeile = Rot-Spieler (Index 0-5), Spalte = Blau-Spieler (Index 0-5)
-
-
-function buildMtx(extraMatches){
-  const rot=PL.rot.map(p=>p.n);const blau=PL.blau.map(p=>p.n);
-  const allP=rot.concat(blau);
-  const mtx={};rot.forEach(r=>{mtx[r]={};blau.forEach(b=>{mtx[r][b]=0;});});
-  const pmtx={};allP.forEach(p=>{pmtx[p]={};allP.forEach(q=>{pmtx[p][q]=0;});});
-  const allMatches=MATCHES.concat(extraMatches||[]);
-
-  // Wenn Spielplan leer: zeige optimale Matrix aus DUELL_MATRIX_DOC
-  if(allMatches.length===0){
-    rot.forEach(function(r,ri){
-      blau.forEach(function(b,bi){
-        mtx[r][b]=DUELL_MATRIX_DOC[ri][bi];
-      });
-    });
-    return{mtx,pmtx,rot,blau};
-  }
-
-  allMatches.forEach(function(m){
-    const rP=m.pA.concat(m.pB).filter(p=>rot.includes(p));
-    const bP=m.pA.concat(m.pB).filter(p=>blau.includes(p));
-    rP.forEach(r=>{bP.forEach(b=>{if(mtx[r])mtx[r][b]++;});});
-    for(let i=0;i<m.pA.length;i++)for(let j=i+1;j<m.pA.length;j++){
-      if(pmtx[m.pA[i]])pmtx[m.pA[i]][m.pA[j]]=(pmtx[m.pA[i]][m.pA[j]]||0)+1;
-      if(pmtx[m.pA[j]])pmtx[m.pA[j]][m.pA[i]]=(pmtx[m.pA[j]][m.pA[i]]||0)+1;
-    }
-    for(let i=0;i<m.pB.length;i++)for(let j=i+1;j<m.pB.length;j++){
-      if(pmtx[m.pB[i]])pmtx[m.pB[i]][m.pB[j]]=(pmtx[m.pB[i]][m.pB[j]]||0)+1;
-      if(pmtx[m.pB[j]])pmtx[m.pB[j]][m.pB[i]]=(pmtx[m.pB[j]][m.pB[i]]||0)+1;
-    }
-  });
-  return{mtx,pmtx,rot,blau};
-}
 
 // ─── FESTE DUELL-MATRIX (lt. Turnierdokument) ─────────────
 // Zeile=Rot-Index(0-5), Spalte=Blau-Index(0-5)
@@ -3241,71 +3122,8 @@ const DUELL_MATRIX_DOC=[
   [2,2,2,2,0,2], // Rot4 -> Blau4 (Einzel)
   [2,2,0,2,2,2], // Rot5 -> Blau2 (Einzel)
 ];
-// Gibt die feste Einzel-Paarung fuer diesen Rot-Spieler zurueck (lt. Matrix)
-function getFixedEinzelPartner(rotPlayer){
-  // Captain's Pick: aus EXTRAS.einzel (manuell gesetzt)
-  const picks=EXTRAS.einzel||[];
-  const pick=picks.find(function(p){return p.rot===rotPlayer;});
-  return pick?pick.blau:null;
-}
-// Gibt den natuerlichen Einzel-Kandidaten lt. Matrix zurueck (0er-Feld)
-function getSuggestedEinzelPartner(rotPlayer){
-  const rot=PL.rot.map(function(p){return p.n;});
-  const blau=PL.blau.map(function(p){return p.n;});
-  const ri=rot.indexOf(rotPlayer);
-  if(ri<0)return null;
-  const bi=DUELL_MATRIX_DOC[ri].indexOf(0);
-  return bi>=0?blau[bi]:null;
-}
 
-// Bilde optimale Paare aus einer Liste (greedy, minimiere Begegnungen)
-function bestPairs(players,mtx,opponents,side,pmtx){
-  // Score pro Paar: Gegner-Begegnungen + Partner-Begegnungen (beide minimieren)
-  const pairs=[];
-  for(let i=0;i<players.length;i++){
-    for(let j=i+1;j<players.length;j++){
-      // Wie oft gegen Gegner gespielt
-      let oppEnc=0;
-      opponents.forEach(function(opp){
-        oppEnc+=side==='rot'?(mtx[players[i]][opp]||0)+(mtx[players[j]][opp]||0)
-                            :(mtx[opp][players[i]]||0)+(mtx[opp][players[j]]||0);
-      });
-      // Wie oft zusammen gespielt (Partner-Score, gleich gewichtet)
-      const partnerEnc=pmtx?(pmtx[players[i]][players[j]]||0):0;
-      // Gesamt: Partner stärker gewichten damit Abwechslung im Team gewährleistet
-      pairs.push({p:[players[i],players[j]],score:oppEnc+partnerEnc*2});
-    }
-  }
-  pairs.sort(function(a,b){return a.score-b.score;});
-  const used=new Set();const result=[];
-  pairs.forEach(function({p}){
-    if(!used.has(p[0])&&!used.has(p[1])){used.add(p[0]);used.add(p[1]);result.push(p);}
-  });
-  return result;
-}
 
-// Weise Rot-Paare den Blau-Paaren zu um Begegnungen zu minimieren
-function assignPairs(rotPairs,blauPairs,mtx){
-  const n=Math.min(rotPairs.length,blauPairs.length);
-  // Try all permutations for n<=3, take best
-  const perms=permutations([...Array(n).keys()]);
-  let bestPerm=perms[0];let bestScore=Infinity;
-  perms.forEach(perm=>{
-    let score=0;
-    perm.forEach((bi,ri)=>{
-      const rP=rotPairs[ri];const bP=blauPairs[bi];
-      rP.forEach(r=>bP.forEach(b=>score+=(mtx[r]?.[b]||0)));
-    });
-    if(score<bestScore){bestScore=score;bestPerm=perm;}
-  });
-  return bestPerm.map((bi,ri)=>({rPair:rotPairs[ri],bPair:blauPairs[bi]}));
-}
-function permutations(arr){
-  if(arr.length<=1)return[arr];
-  const result=[];
-  arr.forEach((v,i)=>{const rest=[...arr.slice(0,i),...arr.slice(i+1)];permutations(rest).forEach(p=>result.push([v,...p]));});
-  return result;
-}
 
 function bMx(){
   const rot=PL.rot.map(function(p){return p.n;});
@@ -3528,7 +3346,6 @@ function removeDueblerMatches(){
 function printSpielplan(){
   var fmtName={bb:'Best Ball',stabl:'Stableford',greensome:'Greensome',duebler:'Dübler',einzel:'Einzel'};
   var dayIcon={'Donnerstag':'☀️ Donnerstag','Freitag':'🌤 Freitag','Samstag':'🏆 Samstag'};
-  var courseHcpStr=function(name,ckey){return courseHcp(getHcp(name),ckey);};
 
   // Gruppiere Matches nach Tag + Format
   var days=[...new Set(MATCHES.map(function(m){return m.day;}))];
